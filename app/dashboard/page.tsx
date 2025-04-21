@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { AppLayout } from "@/components/app-layout";
 import { ExecutiveDashboardContent } from "@/components/executive-dashboard";
 import { ManagerDashboardContent } from "@/components/manager-dashboard";
-import { useConvexAuth } from "convex/react";
+import { useConvexAuth, useQuery } from "convex/react";
 import { ManagerDashboardSkeleton } from "@/components/DashboardSkeleton";
+import { api } from "@/convex/_generated/api";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -14,20 +15,26 @@ export default function Dashboard() {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const [contentLoading, setContentLoading] = useState(true);
 
+  // Fetch user role from Convex
+  const role = useQuery(api.myFunctions.getUserRole);
+
   useEffect(() => {
     // Only fetch data when authentication is confirmed
     if (!isLoading) {
       if (isAuthenticated) {
-        // Fetch user data or other protected content
-        setContentLoading(false);
-        setUserRole("executive"); // Replace with actual role fetching logic
+        // Role is now fetched using the Convex query
+        if (role !== undefined) {
+          console.log("User role:", role);
+          setUserRole(role);
+          setContentLoading(false);
+        }
       }
       // else {
       //   // Redirect to login if not authenticated
       //   router.push("/signin");
       // }
     }
-  }, [isLoading, isAuthenticated, router]);
+  }, [isLoading, isAuthenticated, router, role]);
 
   // Show loading state while checking authentication
   if (isLoading || (isAuthenticated && contentLoading)) {

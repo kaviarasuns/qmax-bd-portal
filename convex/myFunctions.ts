@@ -49,6 +49,25 @@ export const listNumbers = query({
     };
   },
 });
+
+// Add this new function to fetch the user role
+export const getUserRole = query({
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+
+    if (!userId) {
+      return null;
+    }
+
+    const userRole = await ctx.db
+      .query("userRoles")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .unique();
+
+    return userRole ? userRole.role : null;
+  },
+});
+
 // You can write data to the database via a mutation:
 export const addNumber = mutation({
   // Validators for arguments.
