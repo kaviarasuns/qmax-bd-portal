@@ -15,22 +15,40 @@ export const listNumbers = query({
 
   // Query implementation.
   handler: async (ctx, args) => {
-    //// Read the database as many times as you need here.
-    //// See https://docs.convex.dev/database/reading-data.
+    // Read the database as many times as you need here.
     const numbers = await ctx.db
       .query("numbers")
       // Ordered by _creationTime, return most recent
       .order("desc")
       .take(args.count);
+
     const userId = await getAuthUserId(ctx);
-    const user = userId === null ? null : await ctx.db.get(userId);
+
+    // Initialize user and role variables
+    let user = null;
+    let role = null;
+
+    // If we have a userId, fetch both user and role information
+    if (userId !== null) {
+      user = await ctx.db.get(userId);
+
+      // Fetch the user's role from userRoles table using the index
+      const userRole = await ctx.db
+        .query("userRoles")
+        .withIndex("by_userId", (q) => q.eq("userId", userId))
+        .unique();
+
+      // Get the role information if userRole exists
+      role = userRole ? userRole.role : null;
+    }
+
     return {
       viewer: user?.email ?? null,
       numbers: numbers.reverse().map((number) => number.value),
+      role: role, // Include the role in the return object
     };
   },
 });
-
 // You can write data to the database via a mutation:
 export const addNumber = mutation({
   // Validators for arguments.
