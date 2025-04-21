@@ -21,10 +21,11 @@ export default function Dashboard() {
         // Fetch user data or other protected content
         setContentLoading(false);
         setUserRole("executive"); // Replace with actual role fetching logic
-      } else {
-        // Redirect to login if not authenticated
-        router.push("/signin");
       }
+      // else {
+      //   // Redirect to login if not authenticated
+      //   router.push("/signin");
+      // }
     }
   }, [isLoading, isAuthenticated, router]);
 
