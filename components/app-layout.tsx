@@ -5,9 +5,11 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Users } from "lucide-react";
+import { LayoutDashboard, Loader2, Users } from "lucide-react";
 import { useConvexAuth } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
+import Image from "next/image";
+import { Button } from "./ui/button";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -21,26 +23,20 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-10 border-b bg-background">
+      <header className="sticky top-0 z-10 border-b bg-background w-full">
         <div className="container flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="font-semibold">
-              Company Management Portal
-            </Link>
+          <div>
+            <Image
+              src="https://d1yetprhniwywz.cloudfront.net/QMAXSYSTEMS-new-logo.svg"
+              alt="QMAX Systems Logo"
+              width={220}
+              height={200}
+              priority
+            />
             <nav className="hidden md:flex items-center gap-6 text-sm">
-              <Link
-                href="/dashboard"
-                className={`transition-colors hover:text-foreground/80 ${
-                  pathname === "/dashboard"
-                    ? "text-foreground font-medium"
-                    : "text-foreground/60"
-                }`}
-              >
-                Dashboard
-              </Link>
             </nav>
           </div>
-          <div className="flex items-center gap-4">
+          <div>
             {userRole && (
               <span className="text-sm text-muted-foreground mr-2">
                 Logged in as{" "}
@@ -109,19 +105,34 @@ function SignOutButton() {
   const { isAuthenticated } = useConvexAuth();
   const { signOut } = useAuthActions();
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSignOut = async () => {
+    try {
+      setIsLoading(true);
+      await signOut();
+      await router.push("/signin");
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <>
       {isAuthenticated && (
-        <button
-          className="bg-slate-200 dark:bg-slate-800 text-foreground rounded-md px-2 py-1"
-          onClick={() =>
-            void signOut().then(() => {
-              router.push("/signin");
-            })
-          }
+        <Button
+          variant="outline"
+          onClick={handleSignOut}
+          disabled={isLoading}
         >
-          Sign out
-        </button>
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Signing out
+            </>
+          ) : (
+            "Sign out"
+          )}
+        </Button>
       )}
     </>
   );
