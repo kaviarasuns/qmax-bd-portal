@@ -28,10 +28,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CheckCircle, XCircle } from "lucide-react";
+import { Id } from "@/convex/_generated/dataModel";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 // Define the Company interface
 interface Company {
-  id: number;
+  id: Id<"companyProspects">;
   name: string;
   website: string;
   status: CompanyStatus;
@@ -42,44 +45,26 @@ interface Company {
 type CompanyStatus = "Pending" | "Approved" | "Rejected";
 
 export function ManagerDashboardContent() {
-  // Mock data - in a real app this would come from your backend
-  const [companies, setCompanies] = useState<Company[]>([
-    {
-      id: 1,
-      name: "Acme Inc",
-      website: "https://acme.example.com",
-      status: "Pending",
-      notes: "",
-    },
-    {
-      id: 2,
-      name: "Globex Corp",
-      website: "https://globex.example.com",
-      status: "Approved",
-      notes: "Great potential client",
-    },
-    {
-      id: 3,
-      name: "Initech",
-      website: "https://initech.example.com",
-      status: "Rejected",
-      notes: "Not a good fit",
-    },
-    {
-      id: 4,
-      name: "Umbrella Corp",
-      website: "https://umbrella.example.com",
-      status: "Pending",
-      notes: "",
-    },
-    {
-      id: 5,
-      name: "Stark Industries",
-      website: "https://stark.example.com",
-      status: "Pending",
-      notes: "",
-    },
-  ]);
+  // Fetch companies from Convex
+  const companyProspects =
+    useQuery(api.myFunctions.listCompanyProspects, {}) || [];
+
+  // Get the update mutations from Convex
+  const updateCompanyProspectStatus = useMutation(
+    api.myFunctions.updateCompanyProspectStatus,
+  );
+  const updateCompanyProspectNotes = useMutation(
+    api.myFunctions.updateCompanyProspectNotes,
+  );
+
+  // Map Convex data to Company interface
+  const companies: Company[] = companyProspects.map((prospect) => ({
+    id: prospect._id,
+    name: prospect.name,
+    website: prospect.website,
+    status: prospect.status as CompanyStatus,
+    notes: prospect.notes || "",
+  }));
 
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [notes, setNotes] = useState("");
@@ -91,25 +76,32 @@ export function ManagerDashboardContent() {
     setIsDialogOpen(true);
   };
 
-  const handleApprove = () => {
-    updateCompanyStatus("Approved");
-  };
-
-  const handleReject = () => {
-    updateCompanyStatus("Rejected");
-  };
-
-  const updateCompanyStatus = (status: CompanyStatus) => {
+  const handleApprove = async () => {
     if (!selectedCompany) return;
-
-    const updatedCompanies = companies.map((company) => {
-      if (company.id === selectedCompany.id) {
-        return { ...company, status, notes };
-      }
-      return company;
+    await updateCompanyProspectStatus({
+      id: selectedCompany.id,
+      status: "Approved",
+      notes: notes,
     });
+    setIsDialogOpen(false);
+  };
 
-    setCompanies(updatedCompanies);
+  const handleReject = async () => {
+    if (!selectedCompany) return;
+    await updateCompanyProspectStatus({
+      id: selectedCompany.id,
+      status: "Rejected",
+      notes: notes,
+    });
+    setIsDialogOpen(false);
+  };
+
+  const handleSaveNotes = async () => {
+    if (!selectedCompany) return;
+    await updateCompanyProspectNotes({
+      id: selectedCompany.id,
+      notes: notes,
+    });
     setIsDialogOpen(false);
   };
 
@@ -193,10 +185,10 @@ export function ManagerDashboardContent() {
             <DialogDescription>
               {selectedCompany && (
                 <div className="mt-2">
-                  <p>
+                  <div className="mb-1">
                     <strong>Company:</strong> {selectedCompany.name}
-                  </p>
-                  <p>
+                  </div>
+                  <div>
                     <strong>Website:</strong>{" "}
                     <a
                       href={selectedCompany.website}
@@ -206,7 +198,7 @@ export function ManagerDashboardContent() {
                     >
                       {selectedCompany.website}
                     </a>
-                  </p>
+                  </div>
                 </div>
               )}
             </DialogDescription>
@@ -253,19 +245,7 @@ export function ManagerDashboardContent() {
                 </>
               )}
               {selectedCompany?.status !== "Pending" && (
-                <Button
-                  type="button"
-                  onClick={() => {
-                    const updatedCompanies = companies.map((company) => {
-                      if (company.id === selectedCompany?.id) {
-                        return { ...company, notes };
-                      }
-                      return company;
-                    });
-                    setCompanies(updatedCompanies);
-                    setIsDialogOpen(false);
-                  }}
-                >
+                <Button type="button" onClick={handleSaveNotes}>
                   Save Notes
                 </Button>
               )}

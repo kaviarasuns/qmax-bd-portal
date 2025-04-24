@@ -118,6 +118,93 @@ export const addCompanyProspect = mutation({
   },
 });
 
+// Update company prospect status
+export const updateCompanyProspectStatus = mutation({
+  args: {
+    id: v.id("companyProspects"),
+    status: v.union(
+      v.literal("Pending"),
+      v.literal("Approved"),
+      v.literal("Rejected"),
+    ),
+    notes: v.optional(v.string()),
+  },
+
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+
+    if (!userId) {
+      throw new Error(
+        "Authentication required to update company prospect status",
+      );
+    }
+
+    // Check if the user has permission (optional, add role checks if needed)
+    const userRole = await ctx.db
+      .query("userRoles")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .unique();
+
+    if (!userRole || userRole.role !== "manager") {
+      throw new Error("Only managers can update company prospect status");
+    }
+
+    // Define a properly typed update object
+    type CompanyProspectUpdate = {
+      status: "Pending" | "Approved" | "Rejected";
+      notes?: string;
+    };
+
+    const updateData: CompanyProspectUpdate = {
+      status: args.status,
+    };
+
+    // Add notes if provided
+    if (args.notes !== undefined) {
+      updateData.notes = args.notes;
+    }
+
+    await ctx.db.patch(args.id, updateData);
+
+    return true;
+  },
+});
+
+// Update company prospect notes
+export const updateCompanyProspectNotes = mutation({
+  args: {
+    id: v.id("companyProspects"),
+    notes: v.string(),
+  },
+
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+
+    if (!userId) {
+      throw new Error(
+        "Authentication required to update company prospect notes",
+      );
+    }
+
+    // Optional role check - remove if not needed
+    const userRole = await ctx.db
+      .query("userRoles")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .unique();
+
+    if (!userRole || userRole.role !== "manager") {
+      throw new Error("Only managers can update company prospect notes");
+    }
+
+    // Update just the notes field without the timestamp fields
+    await ctx.db.patch(args.id, {
+      notes: args.notes,
+    });
+
+    return true;
+  },
+});
+
 // ...existing code...
 
 // Fetch all company prospects
