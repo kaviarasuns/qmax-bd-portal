@@ -33,8 +33,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               height={200}
               priority
             />
-            <nav className="hidden md:flex items-center gap-6 text-sm">
-            </nav>
+            <nav className="hidden md:flex items-center gap-6 text-sm"></nav>
           </div>
           <div>
             {userRole && (
@@ -119,11 +118,7 @@ function SignOutButton() {
   return (
     <>
       {isAuthenticated && (
-        <Button
-          variant="outline"
-          onClick={handleSignOut}
-          disabled={isLoading}
-        >
+        <Button variant="outline" onClick={handleSignOut} disabled={isLoading}>
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

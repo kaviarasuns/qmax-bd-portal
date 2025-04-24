@@ -37,7 +37,7 @@ export default function SignIn() {
     setError(null);
 
     const formData = new FormData(e.currentTarget);
-    // formData.set("flow", flow);
+    formData.set("flow", flow);
 
     try {
       await signIn("password", formData);

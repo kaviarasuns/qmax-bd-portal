@@ -43,11 +43,11 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      {userRole === "executive" ? (
+      {isAuthenticated && userRole === "executive" ? (
         <ExecutiveDashboardContent />
-      ) : (
+      ) : userRole === "manager" ? (
         <ManagerDashboardContent />
-      )}
+      ) : null}
     </AppLayout>
   );
 }
