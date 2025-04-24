@@ -214,6 +214,13 @@ export const listCompanyProspects = query({
   },
 
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // Return early if not authenticated instead of throwing
+    if (!identity) {
+      return null; // or [] or any appropriate default value
+    }
+
     const userId = await getAuthUserId(ctx);
 
     if (!userId) {

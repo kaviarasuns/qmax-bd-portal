@@ -24,26 +24,21 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-10 border-b bg-background w-full">
-        <div className="container flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-          <div>
-            <Image
-              src="https://d1yetprhniwywz.cloudfront.net/QMAXSYSTEMS-new-logo.svg"
-              alt="QMAX Systems Logo"
-              width={220}
-              height={200}
-              priority
-            />
-            <nav className="hidden md:flex items-center gap-6 text-sm"></nav>
-          </div>
-          <div>
-            {userRole && (
+        <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Image
+            src="https://d1yetprhniwywz.cloudfront.net/QMAXSYSTEMS-new-logo.svg"
+            alt="QMAX Systems Logo"
+            width={220}
+            height={200}
+            priority
+          />
+          {/* {userRole && (
               <span className="text-sm text-muted-foreground mr-2">
                 Logged in as{" "}
                 <span className="font-medium capitalize">{userRole}</span>
               </span>
-            )}
-            <SignOutButton />
-          </div>
+            )} */}
+          <SignOutButton />
         </div>
       </header>
       <div className="flex flex-1">
