@@ -8,21 +8,20 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function SignIn() {
-
   const getReadableErrorMessage = (error: string): string => {
     switch (error.toLowerCase()) {
-      case 'invalid credentials':
-        return 'The email or password you entered is incorrect';
-      case 'user not found':
-        return 'No account found with this email address';
-      case 'invalid email':
-        return 'Please enter a valid email address';
-      case 'password required':
-        return 'Please enter your password';
-      case 'email required':
-        return 'Please enter your email';
+      case "invalid credentials":
+        return "The email or password you entered is incorrect";
+      case "user not found":
+        return "No account found with this email address";
+      case "invalid email":
+        return "Please enter a valid email address";
+      case "password required":
+        return "Please enter your password";
+      case "email required":
+        return "Please enter your email";
       default:
-        return 'Something went wrong. Please try again';
+        return "Something went wrong. Please try again";
     }
   };
 
@@ -44,7 +43,8 @@ export default function SignIn() {
       await signIn("password", formData);
       router.push("/dashboard");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "An error occurred";
+      const errorMessage =
+        error instanceof Error ? error.message : "An error occurred";
       setError(getReadableErrorMessage(errorMessage));
     } finally {
       setIsLoading(false);
@@ -53,17 +53,17 @@ export default function SignIn() {
 
   return (
     <div className="flex flex-col gap-8 w-96 mx-auto h-screen justify-center items-center">
-    <Image
-    src="https://d1yetprhniwywz.cloudfront.net/QMAXSYSTEMS-new-logo.svg"
-    alt="QMAX Systems Logo"
-    width={220}
-    height={200}
-    priority
-  />
-      <form
-        className="flex flex-col gap-2"
-        onSubmit={handleSubmit}
-      >
+      <Image
+        src="https://d1yetprhniwywz.cloudfront.net/QMAXSYSTEMS-new-logo.svg"
+        alt="QMAX Systems Logo"
+        width={300}
+        height={200}
+        priority
+      />
+      <p className="mx-auto max-w-[300px] text-gray-500 md:text-xl">
+        Streamline your company prospecting and approval process
+      </p>
+      <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
         <input
           className="bg-background text-foreground rounded-md p-2 border-2 border-slate-200 dark:border-slate-800"
           type="email"
@@ -76,18 +76,16 @@ export default function SignIn() {
           name="password"
           placeholder="Password"
         />
-             <Button 
-          type="submit"
-          disabled={isLoading}
-          className="w-full"
-        >
+        <Button type="submit" disabled={isLoading} className="w-full">
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               {flow === "signIn" ? "Signing in..." : "Signing up..."}
             </>
+          ) : flow === "signIn" ? (
+            "Sign in"
           ) : (
-            flow === "signIn" ? "Sign in" : "Sign up"
+            "Sign up"
           )}
         </Button>
         <div className="flex flex-row gap-2">

@@ -16,4 +16,17 @@ export default defineSchema({
     role: v.string(), // e.g., "admin", "user", "moderator"
     permissions: v.optional(v.array(v.string())), // Optional array of specific permissions
   }).index("by_userId", ["userId"]), // Index to quickly look up roles by user ID
+
+  // New table for company prospects
+  companyProspects: defineTable({
+    userId: v.id("users"), // References the user who created this entry
+    name: v.string(), // Company name
+    website: v.string(), // Company website URL
+    status: v.string(), // "Pending", "Approved", or "Rejected"
+    createdAt: v.number(), // Timestamp of when the entry was created
+    notes: v.optional(v.string()), // Optional field for additional notes
+  })
+    .index("by_userId", ["userId"]) // Look up entries by user
+    .index("by_status", ["status"]) // Look up entries by status
+    .index("by_createdAt", ["createdAt"]), // Sort by creation time
 });

@@ -89,6 +89,62 @@ export const addNumber = mutation({
   },
 });
 
+// Add a company prospect to the database
+export const addCompanyProspect = mutation({
+  args: {
+    name: v.string(),
+    website: v.string(),
+    notes: v.optional(v.string()),
+  },
+
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+
+    if (!userId) {
+      throw new Error("Authentication required to add a company prospect");
+    }
+
+    const id = await ctx.db.insert("companyProspects", {
+      userId,
+      name: args.name,
+      website: args.website,
+      status: "Pending", // Default status for new entries
+      createdAt: Date.now(),
+      notes: args.notes,
+    });
+
+    console.log("Added new company prospect with id:", id);
+    return id;
+  },
+});
+
+// ...existing code...
+
+// Fetch all company prospects
+export const listCompanyProspects = query({
+  args: {
+    limit: v.optional(v.number()),
+  },
+
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+
+    if (!userId) {
+      throw new Error("Authentication required to list company prospects");
+    }
+
+    const limit = args.limit ?? 50; // Default limit of 50 prospects
+
+    const prospects = await ctx.db
+      .query("companyProspects")
+      // Order by creation time, most recent first
+      .order("desc")
+      .take(limit);
+
+    return prospects;
+  },
+});
+
 // You can fetch data from and send data to third-party APIs via an action:
 export const myAction = action({
   // Validators for arguments.

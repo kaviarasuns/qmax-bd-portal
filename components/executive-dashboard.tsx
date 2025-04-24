@@ -22,53 +22,54 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 
 // Define the Company interface
 interface Company {
-  id: number;
+  id: Id<"companyProspects">; // Update to use Convex ID type
   name: string;
   website: string;
   status: "Pending" | "Approved" | "Rejected";
 }
-
 export function ExecutiveDashboardContent() {
   const [companyName, setCompanyName] = useState("");
   const [companyWebsite, setCompanyWebsite] = useState("");
-  const [companies, setCompanies] = useState<Company[]>([
-    {
-      id: 1,
-      name: "Acme Inc",
-      website: "https://acme.example.com",
-      status: "Pending",
-    },
-    {
-      id: 2,
-      name: "Globex Corp",
-      website: "https://globex.example.com",
-      status: "Approved",
-    },
-    {
-      id: 3,
-      name: "Initech",
-      website: "https://initech.example.com",
-      status: "Rejected",
-    },
-  ]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Fetch companies from Convex
+  const companyProspects =
+    useQuery(api.myFunctions.listCompanyProspects, {}) || [];
+
+  // Map Convex data to Company interface
+  const companies: Company[] = companyProspects.map((prospect) => ({
+    id: prospect._id,
+    name: prospect.name,
+    website: prospect.website,
+    status: prospect.status as "Pending" | "Approved" | "Rejected",
+  }));
+
+  // Get the addCompanyProspect mutation
+  const addCompanyProspect = useMutation(api.myFunctions.addCompanyProspect);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Add new company to the list
-    const newCompany: Company = {
-      id: companies.length + 1,
-      name: companyName,
-      website: companyWebsite,
-      status: "Pending",
-    };
+    try {
+      // Call the Convex mutation to add the company to the database
+      await addCompanyProspect({
+        name: companyName,
+        website: companyWebsite,
+        notes: "", // Optional field, can be added to form if needed
+      });
 
-    setCompanies([...companies, newCompany]);
-    setCompanyName("");
-    setCompanyWebsite("");
+      // No need to manually update state - Convex will refresh the data
+      setCompanyName("");
+      setCompanyWebsite("");
+    } catch (error) {
+      console.error("Failed to add company prospect:", error);
+      // You could add error handling UI here
+    }
   };
 
   return (
