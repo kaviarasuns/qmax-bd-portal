@@ -26,7 +26,7 @@ export default function SignIn() {
   };
 
   const { signIn } = useAuthActions();
-  const [flow, setFlow] = useState<"signIn" | "signUp">("signIn");
+  const [flow] = useState<"signIn" | "signUp">("signIn");
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -37,7 +37,7 @@ export default function SignIn() {
     setError(null);
 
     const formData = new FormData(e.currentTarget);
-    formData.set("flow", flow);
+    // formData.set("flow", flow);
 
     try {
       await signIn("password", formData);
@@ -63,7 +63,7 @@ export default function SignIn() {
       <p className="mx-auto max-w-[300px] text-gray-500 md:text-xl">
         Streamline your company prospecting and approval process
       </p>
-      <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
+      <form className="flex flex-col gap-2 w-[300px]" onSubmit={handleSubmit}>
         <input
           className="bg-background text-foreground rounded-md p-2 border-2 border-slate-200 dark:border-slate-800"
           type="email"
@@ -88,7 +88,7 @@ export default function SignIn() {
             "Sign up"
           )}
         </Button>
-        <div className="flex flex-row gap-2">
+        {/* <div className="flex flex-row gap-2">
           <span>
             {flow === "signIn"
               ? "Don't have an account?"
@@ -100,7 +100,7 @@ export default function SignIn() {
           >
             {flow === "signIn" ? "Sign up instead" : "Sign in instead"}
           </span>
-        </div>
+        </div> */}
         {error && (
           <div className="bg-red-500/20 border-2 border-red-500/50 rounded-md p-2">
             <p className="text-foreground font-mono text-xs">
