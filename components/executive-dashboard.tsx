@@ -44,7 +44,7 @@ export function ExecutiveDashboardContent() {
   // Map Convex data to Company interface
   const companies: Company[] = companyProspects.map((prospect) => ({
     id: prospect._id,
-    name: prospect.name,
+    name: prospect.companyName,
     website: prospect.website,
     status: prospect.status as "Pending" | "Approved" | "Rejected",
   }));
@@ -58,7 +58,7 @@ export function ExecutiveDashboardContent() {
     try {
       // Call the Convex mutation to add the company to the database
       await addCompanyProspect({
-        name: companyName,
+        companyName: companyName,
         website: companyWebsite,
         notes: "", // Optional field, can be added to form if needed
       });

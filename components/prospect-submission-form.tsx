@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { CalendarIcon, PlusCircle, Trash2 } from "lucide-react";
 import { format } from "date-fns";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -68,11 +71,17 @@ export default function ProspectSubmissionForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Move useMutation to component level
+  // const updateProspect = useMutation(api.myFunctions.updateCompanyProspect);
+
+  // Fetch latest approved prospect
+  const latestProspect = useQuery(api.myFunctions.getLatestApprovedProspect);
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      companyName: "",
-      website: "",
+      companyName: latestProspect?.companyName || "",
+      website: latestProspect?.website || "",
       linkedIn: "",
       country: "",
       headquarters: "",
@@ -93,13 +102,26 @@ export default function ProspectSubmissionForm() {
     },
   });
 
-  function onSubmit(data: FormValues) {
-    setIsSubmitting(true);
+  // Update form when latestProspect is loaded
+  useEffect(() => {
+    if (latestProspect) {
+      form.setValue("companyName", latestProspect.companyName);
+      form.setValue("website", latestProspect.website);
+    }
+  }, [latestProspect, form]);
 
-    // In a real app, you would send this data to your backend
-    // For now, we'll just redirect to the results page with the data
-    const encodedData = encodeURIComponent(JSON.stringify(data));
-    router.push(`/results?data=${encodedData}`);
+  async function onSubmit(data: FormValues) {
+    setIsSubmitting(true);
+    try {
+      console.log("Submitting form data:", data);
+      toast.success("Company prospect updated successfully!");
+      router.push("/prospects");
+    } catch (error) {
+      toast.error("Failed to update company prospect. Please try again.");
+      console.error("Error updating prospect:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   const addContact = () => {

@@ -19,14 +19,39 @@ export default defineSchema({
 
   // New table for company prospects
   companyProspects: defineTable({
-    userId: v.id("users"), // References the user who created this entry
-    name: v.string(), // Company name
-    website: v.string(), // Company website URL
-    status: v.string(), // "Pending", "Approved", or "Rejected"
-    createdAt: v.number(), // Timestamp of when the entry was created
-    notes: v.optional(v.string()), // Optional field for additional notes
+    userId: v.id("users"),
+    companyName: v.string(),
+    website: v.string(),
+    status: v.string(),
+    createdAt: v.number(),
+    notes: v.optional(v.string()),
+    // Optional fields for executive update
+    linkedIn: v.optional(v.string()),
+    country: v.optional(v.string()),
+    headquarters: v.optional(v.string()),
+    companyType: v.optional(v.string()),
+    industry: v.optional(v.string()),
+    endProduct: v.optional(v.string()),
+    employees: v.optional(v.string()),
+    ceoName: v.optional(v.string()),
+    ceoLinkedIn: v.optional(v.string()),
+    ceoEmail: v.optional(v.string()),
+    phoneNumber: v.optional(v.string()),
+    fundingStage: v.optional(v.string()),
+    rdLocations: v.optional(v.string()),
+    potentialNeeds: v.optional(v.string()),
+    contacts: v.optional(
+      v.array(
+        v.object({
+          email: v.string(),
+          linkedIn: v.string(),
+        }),
+      ),
+    ),
+    dateTime: v.optional(v.number()),
   })
-    .index("by_userId", ["userId"]) // Look up entries by user
-    .index("by_status", ["status"]) // Look up entries by status
-    .index("by_createdAt", ["createdAt"]), // Sort by creation time
+    .index("by_userId", ["userId"])
+    .index("by_status", ["status"])
+    .index("by_createdAt", ["createdAt"])
+    .index("by_companyName", ["companyName"]), // Add index for company name searches
 });

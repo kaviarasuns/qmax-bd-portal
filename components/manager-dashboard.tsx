@@ -63,7 +63,7 @@ export function ManagerDashboardContent() {
   // Map Convex data to Company interface
   const companies: Company[] = companyProspects.map((prospect) => ({
     id: prospect._id,
-    name: prospect.name,
+    name: prospect.companyName,
     website: prospect.website,
     status: prospect.status as CompanyStatus,
     notes: prospect.notes || "",

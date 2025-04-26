@@ -68,6 +68,23 @@ export const getUserRole = query({
   },
 });
 
+// Add a new function to fetch the latest approved prospect
+export const getLatestApprovedProspect = query({
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return null;
+
+    const prospect = await ctx.db
+      .query("companyProspects")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .filter((q) => q.eq(q.field("status"), "Approved"))
+      .order("desc")
+      .first();
+
+    return prospect;
+  },
+});
+
 // You can write data to the database via a mutation:
 export const addNumber = mutation({
   // Validators for arguments.
@@ -92,7 +109,7 @@ export const addNumber = mutation({
 // Add a company prospect to the database
 export const addCompanyProspect = mutation({
   args: {
-    name: v.string(),
+    companyName: v.string(), // Changed from 'name' to 'companyName'
     website: v.string(),
     notes: v.optional(v.string()),
   },
@@ -106,14 +123,13 @@ export const addCompanyProspect = mutation({
 
     const id = await ctx.db.insert("companyProspects", {
       userId,
-      name: args.name,
+      companyName: args.companyName, // Changed from args.name to args.companyName
       website: args.website,
       status: "Pending", // Default status for new entries
       createdAt: Date.now(),
       notes: args.notes,
     });
 
-    console.log("Added new company prospect with id:", id);
     return id;
   },
 });
@@ -205,7 +221,87 @@ export const updateCompanyProspectNotes = mutation({
   },
 });
 
-// ...existing code...
+// Update company prospect with all possible fields
+export const updateCompanyProspect = mutation({
+  args: {
+    id: v.id("companyProspects"),
+    companyName: v.string(),
+    website: v.string(),
+    linkedIn: v.string(),
+    country: v.string(),
+    headquarters: v.string(),
+    companyType: v.string(),
+    industry: v.string(),
+    endProduct: v.string(),
+    employees: v.string(),
+    ceoName: v.string(),
+    ceoLinkedIn: v.string(),
+    ceoEmail: v.string(),
+    phoneNumber: v.string(),
+    fundingStage: v.string(),
+    rdLocations: v.string(),
+    potentialNeeds: v.string(),
+    contacts: v.array(
+      v.object({
+        email: v.string(),
+        linkedIn: v.string(),
+      }),
+    ),
+    notes: v.optional(v.string()),
+    status: v.string(),
+  },
+
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+
+    if (!userId) {
+      throw new Error("Authentication required to update company prospect");
+    }
+
+    // Optional: Check if the user has permission to update this prospect
+    const prospect = await ctx.db.get(args.id);
+    if (!prospect) {
+      throw new Error("Company prospect not found");
+    }
+
+    if (prospect.userId !== userId) {
+      // Check if user has admin/manager role
+      const userRole = await ctx.db
+        .query("userRoles")
+        .withIndex("by_userId", (q) => q.eq("userId", userId))
+        .unique();
+
+      if (!userRole || !["admin", "manager"].includes(userRole.role)) {
+        throw new Error("Permission denied: Can only edit your own prospects");
+      }
+    }
+
+    // Update all fields
+    await ctx.db.patch(args.id, {
+      companyName: args.companyName,
+      website: args.website,
+      linkedIn: args.linkedIn,
+      country: args.country,
+      headquarters: args.headquarters,
+      companyType: args.companyType,
+      industry: args.industry,
+      endProduct: args.endProduct,
+      employees: args.employees,
+      ceoName: args.ceoName,
+      ceoLinkedIn: args.ceoLinkedIn,
+      ceoEmail: args.ceoEmail,
+      phoneNumber: args.phoneNumber,
+      fundingStage: args.fundingStage,
+      rdLocations: args.rdLocations,
+      potentialNeeds: args.potentialNeeds,
+      contacts: args.contacts,
+      notes: args.notes,
+      status: args.status,
+    });
+
+    return true;
+  },
+});
 
 // Fetch all company prospects
 export const listCompanyProspects = query({
