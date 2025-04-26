@@ -31,6 +31,7 @@ import { CheckCircle, XCircle } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useSearchParams } from "next/navigation";
 
 // Define the Company interface
 interface Company {
@@ -48,6 +49,9 @@ export function ManagerDashboardContent() {
   // Fetch companies from Convex
   const companyProspects =
     useQuery(api.myFunctions.listCompanyProspects, {}) || [];
+
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get("tab");
 
   // Get the update mutations from Convex
   const updateCompanyProspectStatus = useMutation(
@@ -150,8 +154,7 @@ export function ManagerDashboardContent() {
       <Tabs defaultValue="pending">
         <TabsList>
           <TabsTrigger value="pending">Pending Review</TabsTrigger>
-          <TabsTrigger value="approved">Approved Companies</TabsTrigger>
-          <TabsTrigger value="rejected">Rejected Companies</TabsTrigger>
+          <TabsTrigger value="detailedInfo">Detailed Info</TabsTrigger>
         </TabsList>
 
         <TabsContent value="pending" className="mt-4">
