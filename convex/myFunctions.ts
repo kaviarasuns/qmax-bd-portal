@@ -239,6 +239,27 @@ export const listCompanyProspects = query({
   },
 });
 
+export const getCurrentUserWithRoles = query({
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      return null;
+    }
+
+    // Get the user
+    const user = await ctx.db.get(userId);
+
+    // Get the user's roles using the index you defined
+    const roles = await ctx.db
+      .query("userRoles")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .collect();
+
+    // Return both user and roles
+    return { user, roles };
+  },
+});
+
 // You can fetch data from and send data to third-party APIs via an action:
 export const myAction = action({
   // Validators for arguments.

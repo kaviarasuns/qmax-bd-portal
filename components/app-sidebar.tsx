@@ -13,13 +13,15 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import Image from "next/image";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 // This is sample data.
 const data = {
   user: {
     name: "shadcn",
     email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    avatar: "/q_logo.png",
   },
   teams: [
     {
@@ -44,6 +46,19 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const userWithRoles = useQuery(api.myFunctions.getCurrentUserWithRoles);
+
+  // Create a user object from userWithRoles data
+  const userData = userWithRoles?.user
+    ? {
+        name: userWithRoles.user.name || "Guest",
+        email: userWithRoles.user.email || "",
+        avatar: "/q_logo.png", // Fallback to default avatar
+      }
+    : data.user;
+
+  console.log("userWithRoles", userWithRoles?.user?.email);
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -60,7 +75,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={userData} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

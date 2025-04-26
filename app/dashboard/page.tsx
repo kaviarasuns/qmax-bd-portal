@@ -18,6 +18,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import ViewProspects from "@/components/view-prospects";
 import { api } from "@/convex/_generated/api";
 import { useConvexAuth, useQuery } from "convex/react";
 import { useSearchParams } from "next/navigation";
@@ -37,6 +38,12 @@ export default function Page() {
       setUserRole(role);
     }
   }, [role]);
+
+  const dashboardContent = useDashboardContent({
+    isAuthenticated,
+    userRole,
+    page,
+  });
 
   return (
     <SidebarProvider>
@@ -65,15 +72,33 @@ export default function Page() {
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          {isAuthenticated && page === "details" ? (
-            <ProspectSubmissionForm />
-          ) : isAuthenticated && userRole === "executive" ? (
-            <ExecutiveDashboardContent />
-          ) : userRole === "manager" ? (
-            <ManagerDashboardContent />
-          ) : null}
+          {dashboardContent}
         </div>
       </SidebarInset>
     </SidebarProvider>
   );
 }
+
+export const useDashboardContent = ({
+  isAuthenticated,
+  userRole,
+  page,
+}: {
+  isAuthenticated: boolean;
+  userRole: string | null;
+  page: string | null;
+}) => {
+  if (!isAuthenticated) return null;
+
+  // Handle details page view
+  if (page === "details") {
+    if (userRole === "manager") return <ViewProspects />;
+    if (userRole === "executive") return <ProspectSubmissionForm />;
+  }
+
+  // Handle dashboard view
+  if (userRole === "executive") return <ExecutiveDashboardContent />;
+  if (userRole === "manager") return <ManagerDashboardContent />;
+
+  return null;
+};
