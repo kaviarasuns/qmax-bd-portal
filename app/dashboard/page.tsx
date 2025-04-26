@@ -79,7 +79,7 @@ export default function Page() {
   );
 }
 
-export const useDashboardContent = ({
+const useDashboardContent = ({
   isAuthenticated,
   userRole,
   page,
