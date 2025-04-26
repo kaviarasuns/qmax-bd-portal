@@ -24,11 +24,12 @@ import {
   Mail,
   Phone,
   Search,
-  Users,
   Filter,
   Calendar,
   MapPin,
   Briefcase,
+  ArrowLeft,
+  Users,
 } from "lucide-react";
 import {
   Table,
@@ -299,24 +300,21 @@ export default function ViewProspects() {
             database
           </p>
         </div>
-        {/* <div className="flex gap-2">
+        <div className="flex gap-2">
           {viewMode === ViewMode.DETAIL && (
             <Button
               variant="outline"
-              onClick={() => setViewMode(ViewMode.LIST)}
+              onClick={() => {
+                setViewMode(ViewMode.LIST);
+                setSelectedCompanyId(null);
+              }}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
               Back to List
             </Button>
           )}
-          <Link href="/">
-            <Button variant="outline" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              New Submission
-            </Button>
-          </Link>
-        </div> */}
+        </div>
       </div>
 
       {viewMode === ViewMode.LIST ? (
