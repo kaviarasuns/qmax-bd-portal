@@ -35,12 +35,13 @@ const data = {
       title: "Dashboard",
       url: "/dashboard",
       icon: SquareTerminal,
-      isActive: true,
+      pattern: "/dashboard", // Exact match for dashboard
     },
     {
       title: "Detailed Info",
       url: "/dashboard?page=details",
       icon: Bot,
+      pattern: "/dashboard?page=details", // Match dashboard with query param
     },
   ],
 };
