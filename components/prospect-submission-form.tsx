@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { CalendarIcon, PlusCircle, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 
@@ -68,11 +67,10 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function ProspectSubmissionForm() {
-  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Move useMutation to component level
-  // const updateProspect = useMutation(api.myFunctions.updateCompanyProspect);
+  // Add the mutation hook
+  const updateProspect = useMutation(api.myFunctions.updateCompanyProspect);
 
   // Fetch latest approved prospect
   const latestProspect = useQuery(api.myFunctions.getLatestApprovedProspect);
@@ -102,20 +100,88 @@ export default function ProspectSubmissionForm() {
     },
   });
 
-  // Update form when latestProspect is loaded
+  // Update form when latestProspect changes (including when it becomes null)
   useEffect(() => {
-    if (latestProspect) {
-      form.setValue("companyName", latestProspect.companyName);
-      form.setValue("website", latestProspect.website);
-    }
+    // Reset all fields whether latestProspect exists or not
+    form.reset({
+      companyName: latestProspect?.companyName || "",
+      website: latestProspect?.website || "",
+      linkedIn: "",
+      country: "",
+      headquarters: "",
+      companyType: "Private",
+      industry: "",
+      endProduct: "",
+      employees: "",
+      ceoName: "",
+      ceoLinkedIn: "",
+      ceoEmail: "",
+      phoneNumber: "",
+      fundingStage: "",
+      rdLocations: "",
+      potentialNeeds: "",
+      contacts: [{ email: "", linkedIn: "" }],
+      notes: "",
+      dateTime: new Date(),
+    });
   }, [latestProspect, form]);
 
   async function onSubmit(data: FormValues) {
     setIsSubmitting(true);
     try {
-      console.log("Submitting form data:", data);
+      if (!latestProspect?._id) {
+        throw new Error("No prospect ID found");
+      }
+
+      // Ensure all required fields are strings (not undefined)
+      await updateProspect({
+        id: latestProspect._id,
+        companyName: data.companyName,
+        website: data.website,
+        linkedIn: data.linkedIn,
+        country: data.country,
+        headquarters: data.headquarters,
+        companyType: data.companyType,
+        industry: data.industry,
+        endProduct: data.endProduct,
+        employees: data.employees,
+        ceoName: data.ceoName,
+        ceoLinkedIn: data.ceoLinkedIn,
+        ceoEmail: data.ceoEmail,
+        phoneNumber: data.phoneNumber,
+        fundingStage: data.fundingStage || "",
+        rdLocations: data.rdLocations || "",
+        potentialNeeds: data.potentialNeeds || "",
+        contacts: data.contacts,
+        notes: data.notes || "",
+        status: "Completed",
+      });
+
+      // The latestProspect will automatically update through Convex's reactive query
+      // Reset form with the latest prospect data
+      form.reset({
+        companyName: latestProspect?.companyName || "",
+        website: latestProspect?.website || "",
+        linkedIn: "",
+        country: "",
+        headquarters: "",
+        companyType: "Private",
+        industry: "",
+        endProduct: "",
+        employees: "",
+        ceoName: "",
+        ceoLinkedIn: "",
+        ceoEmail: "",
+        phoneNumber: "",
+        fundingStage: "",
+        rdLocations: "",
+        potentialNeeds: "",
+        contacts: [{ email: "", linkedIn: "" }],
+        notes: "",
+        dateTime: new Date(),
+      });
+
       toast.success("Company prospect updated successfully!");
-      router.push("/prospects");
     } catch (error) {
       toast.error("Failed to update company prospect. Please try again.");
       console.error("Error updating prospect:", error);

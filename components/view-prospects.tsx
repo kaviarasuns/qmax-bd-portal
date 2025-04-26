@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
@@ -12,7 +10,7 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+// import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -40,215 +38,46 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-type Contact = {
-  email: string;
-  linkedIn: string;
-};
-
-type CompanyData = {
-  id: string;
-  companyName: string;
-  website: string;
-  linkedIn: string;
-  country: string;
-  headquarters: string;
-  companyType: string;
-  industry: string;
-  endProduct: string;
-  employees: string;
-  ceoName: string;
-  ceoLinkedIn: string;
-  ceoEmail: string;
-  phoneNumber: string;
-  fundingStage: string;
-  rdLocations: string;
-  potentialNeeds: string;
-  contacts: Contact[];
-  notes: string;
-  dateTime: string | Date;
-};
-
-// Dummy data for multiple companies
-const dummyCompanies: CompanyData[] = [
-  {
-    id: "1",
-    companyName: "TechInnovate Solutions",
-    website: "https://techinnovate.example.com",
-    linkedIn: "https://linkedin.com/company/techinnovate",
-    country: "United States",
-    headquarters: "San Francisco, CA, USA",
-    companyType: "Private",
-    industry: "Software Development & IoT",
-    endProduct:
-      "Enterprise software solutions and IoT devices for smart manufacturing",
-    employees: "250-500",
-    ceoName: "Alexandra Chen",
-    ceoLinkedIn: "https://linkedin.com/in/alexandra-chen",
-    ceoEmail: "alexandra.chen@techinnovate.example.com",
-    phoneNumber: "+1 (415) 555-7890",
-    fundingStage: "Series B",
-    rdLocations: "San Francisco (HQ), Boston, Singapore",
-    potentialNeeds: "Hardware Design, Firmware Development, Manufacturing",
-    contacts: [
-      {
-        email: "michael.rodriguez@techinnovate.example.com",
-        linkedIn: "https://linkedin.com/in/michael-rodriguez",
-      },
-      {
-        email: "sarah.patel@techinnovate.example.com",
-        linkedIn: "https://linkedin.com/in/sarah-patel",
-      },
-      {
-        email: "david.kim@techinnovate.example.com",
-        linkedIn: "https://linkedin.com/in/david-kim",
-      },
-    ],
-    notes:
-      "Company is rapidly expanding into Asian markets. Looking for hardware partners for their next generation of IoT devices. Potential for long-term collaboration on multiple product lines.",
-    dateTime: new Date("2023-11-15T14:30:00"),
-  },
-  {
-    id: "2",
-    companyName: "MediHealth Innovations",
-    website: "https://medihealth.example.org",
-    linkedIn: "https://linkedin.com/company/medihealth-innovations",
-    country: "Germany",
-    headquarters: "Munich, Germany",
-    companyType: "Public",
-    industry: "Medical Devices & Healthcare",
-    endProduct: "Advanced diagnostic equipment and patient monitoring systems",
-    employees: "1000-2000",
-    ceoName: "Hans Mueller",
-    ceoLinkedIn: "https://linkedin.com/in/hans-mueller",
-    ceoEmail: "hans.mueller@medihealth.example.org",
-    phoneNumber: "+49 89 1234567",
-    fundingStage: "Public (Listed on Frankfurt Stock Exchange)",
-    rdLocations: "Munich (HQ), Berlin, Zurich, Boston",
-    potentialNeeds: "PCB Design, Firmware, Hardware Testing",
-    contacts: [
-      {
-        email: "julia.schmidt@medihealth.example.org",
-        linkedIn: "https://linkedin.com/in/julia-schmidt",
-      },
-      {
-        email: "thomas.weber@medihealth.example.org",
-        linkedIn: "https://linkedin.com/in/thomas-weber",
-      },
-      {
-        email: "anna.fischer@medihealth.example.org",
-        linkedIn: "https://anna-fischer",
-      },
-      {
-        email: "markus.bauer@medihealth.example.org",
-        linkedIn: "https://linkedin.com/in/markus-bauer",
-      },
-    ],
-    notes:
-      "Looking to expand their product line with more portable diagnostic devices. Interested in miniaturization technologies and low-power solutions.",
-    dateTime: new Date("2023-10-22T09:15:00"),
-  },
-  {
-    id: "3",
-    companyName: "GreenEarth Robotics",
-    website: "https://greenearth-robotics.example.net",
-    linkedIn: "https://linkedin.com/company/greenearth-robotics",
-    country: "Japan",
-    headquarters: "Tokyo, Japan",
-    companyType: "Startup",
-    industry: "Agricultural Technology & Robotics",
-    endProduct:
-      "Autonomous farming robots and environmental monitoring systems",
-    employees: "50-100",
-    ceoName: "Haruki Tanaka",
-    ceoLinkedIn: "https://linkedin.com/in/haruki-tanaka",
-    ceoEmail: "h.tanaka@greenearth-robotics.example.net",
-    phoneNumber: "+81 3 1234 5678",
-    fundingStage: "Series A",
-    rdLocations: "Tokyo (HQ), Osaka, Silicon Valley",
-    potentialNeeds: "Mechanical Design, ID, PCB Design, Manufacturing",
-    contacts: [
-      {
-        email: "yuki.sato@greenearth-robotics.example.net",
-        linkedIn: "https://linkedin.com/in/yuki-sato",
-      },
-      {
-        email: "kenji.watanabe@greenearth-robotics.example.net",
-        linkedIn: "https://linkedin.com/in/kenji-watanabe",
-      },
-    ],
-    notes:
-      "Focused on sustainable agriculture solutions. Currently developing next-gen robots that can work in various weather conditions. Seeking partners for ruggedized electronics design.",
-    dateTime: new Date("2023-12-05T16:45:00"),
-  },
-];
+import { api } from "@/convex/_generated/api";
+import { useQuery } from "convex/react";
+import { useState } from "react";
 
 enum ViewMode {
   LIST = 0,
   DETAIL = 1,
 }
 
+const formatDate = (dateTime: number | undefined) => {
+  if (!dateTime) return "N/A";
+  return format(new Date(dateTime), "MMM d, yyyy");
+};
+
+// const formatDateTime = (dateTime: number | undefined) => {
+//   if (!dateTime) return "N/A";
+//   return format(new Date(dateTime), "MMMM d, yyyy 'at' h:mm a");
+// };
+
 export default function ViewProspects() {
-  const searchParams = useSearchParams();
-  const [companies, setCompanies] = useState<CompanyData[]>([]);
-  const [filteredCompanies, setFilteredCompanies] = useState<CompanyData[]>([]);
+  const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.LIST);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(
     null,
   );
-  const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.LIST);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    const data = searchParams.get("data");
-    if (data) {
-      try {
-        const parsedData = JSON.parse(decodeURIComponent(data));
-        // Convert date string back to formatted date
-        if (parsedData.dateTime) {
-          parsedData.dateTime = new Date(parsedData.dateTime);
-        }
-        // Add the new submission to our dummy data with a unique ID
-        const newCompany = {
-          ...parsedData,
-          id: `new-${Date.now()}`,
-        };
-        const allCompanies = [...dummyCompanies, newCompany];
-        setCompanies(allCompanies);
-        setFilteredCompanies(allCompanies);
-        // Select the newly added company
-        setSelectedCompanyId(newCompany.id);
-        setViewMode(ViewMode.DETAIL);
-      } catch (error) {
-        console.error("Error parsing data:", error);
-        setCompanies(dummyCompanies);
-        setFilteredCompanies(dummyCompanies);
-      }
-    } else {
-      // If no data is provided, use dummy data
-      setCompanies(dummyCompanies);
-      setFilteredCompanies(dummyCompanies);
-    }
-    setLoading(false);
-  }, [searchParams]);
+  // Replace the dummy data with Convex query
+  const companies =
+    useQuery(api.myFunctions.listCompanyProspects, {
+      limit: 50,
+    }) || [];
 
-  useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredCompanies(companies);
-    } else {
-      const query = searchQuery.toLowerCase();
-      const filtered = companies.filter(
-        (company) =>
-          company.companyName.toLowerCase().includes(query) ||
-          company.industry.toLowerCase().includes(query) ||
-          company.country.toLowerCase().includes(query) ||
-          company.ceoName.toLowerCase().includes(query),
-      );
-      setFilteredCompanies(filtered);
-    }
-  }, [searchQuery, companies]);
+  // Filter companies based on search query
+  const filteredCompanies = companies;
+
+  // Update loading state to use Convex query status
+  const loading = companies === undefined;
 
   const selectedCompany = selectedCompanyId
-    ? companies.find((company) => company.id === selectedCompanyId)
+    ? companies.find((company) => company._id === selectedCompanyId)
     : null;
 
   const handleCompanySelect = (id: string) => {
@@ -260,10 +89,10 @@ export default function ViewProspects() {
     if (!selectedCompanyId) return;
 
     const currentIndex = companies.findIndex(
-      (company) => company.id === selectedCompanyId,
+      (company) => company._id === selectedCompanyId,
     );
     if (currentIndex < companies.length - 1) {
-      setSelectedCompanyId(companies[currentIndex + 1].id);
+      setSelectedCompanyId(companies[currentIndex + 1]._id);
     }
   };
 
@@ -271,10 +100,10 @@ export default function ViewProspects() {
     if (!selectedCompanyId) return;
 
     const currentIndex = companies.findIndex(
-      (company) => company.id === selectedCompanyId,
+      (company) => company._id === selectedCompanyId,
     );
     if (currentIndex > 0) {
-      setSelectedCompanyId(companies[currentIndex - 1].id);
+      setSelectedCompanyId(companies[currentIndex - 1]._id);
     }
   };
 
@@ -353,7 +182,7 @@ export default function ViewProspects() {
                   <TableBody>
                     {filteredCompanies.length > 0 ? (
                       filteredCompanies.map((company) => (
-                        <TableRow key={company.id}>
+                        <TableRow key={company._id}>
                           <TableCell className="font-medium">
                             {company.companyName}
                           </TableCell>
@@ -365,19 +194,12 @@ export default function ViewProspects() {
                             </Badge>
                           </TableCell>
                           <TableCell>{company.employees}</TableCell>
-                          <TableCell>
-                            {company.dateTime instanceof Date
-                              ? format(company.dateTime, "MMM d, yyyy")
-                              : format(
-                                  new Date(company.dateTime),
-                                  "MMM d, yyyy",
-                                )}
-                          </TableCell>
+                          <TableCell>{formatDate(company.dateTime)}</TableCell>
                           <TableCell className="text-right">
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleCompanySelect(company.id)}
+                              onClick={() => handleCompanySelect(company._id)}
                             >
                               View Details
                             </Button>
@@ -420,14 +242,14 @@ export default function ViewProspects() {
                 size="icon"
                 onClick={navigateToPreviousCompany}
                 disabled={
-                  companies.findIndex((c) => c.id === selectedCompanyId) === 0
+                  companies.findIndex((c) => c._id === selectedCompanyId) === 0
                 }
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <span className="text-sm text-muted-foreground">
                 Company{" "}
-                {companies.findIndex((c) => c.id === selectedCompanyId) + 1} of{" "}
+                {companies.findIndex((c) => c._id === selectedCompanyId) + 1} of{" "}
                 {companies.length}
               </span>
               <Button
@@ -435,22 +257,16 @@ export default function ViewProspects() {
                 size="icon"
                 onClick={navigateToNextCompany}
                 disabled={
-                  companies.findIndex((c) => c.id === selectedCompanyId) ===
+                  companies.findIndex((c) => c._id === selectedCompanyId) ===
                   companies.length - 1
                 }
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
-            <div className="text-sm text-muted-foreground">
-              Submitted on{" "}
-              {selectedCompany.dateTime instanceof Date
-                ? format(selectedCompany.dateTime, "MMMM d, yyyy 'at' h:mm a")
-                : format(
-                    new Date(selectedCompany.dateTime),
-                    "MMMM d, yyyy 'at' h:mm a",
-                  )}
-            </div>
+            {/* <div className="text-sm text-muted-foreground">
+              Submitted on {formatDateTime(selectedCompany.dateTime)}
+            </div> */}
           </div>
 
           <div className="mb-8">
@@ -660,9 +476,9 @@ export default function ViewProspects() {
                             LinkedIn Profile
                           </a>
                         </div>
-                        {index < selectedCompany.contacts.length - 1 && (
+                        {/* {index < selectedCompany.contacts.length - 1 && (
                           <Separator className="my-3" />
-                        )}
+                        )} */}
                       </div>
                     ))
                   ) : (
@@ -700,3 +516,53 @@ export default function ViewProspects() {
     </div>
   );
 }
+
+// useEffect(() => {
+//   const data = searchParams.get("data");
+
+//   if (data) {
+//     try {
+//       const parsedData = JSON.parse(decodeURIComponent(data));
+
+//       // Convert date string back to formatted date
+
+//       if (parsedData.dateTime) {
+//         parsedData.dateTime = new Date(parsedData.dateTime);
+//       }
+
+//       // Add the new submission to our dummy data with a unique ID
+
+//       const newCompany = {
+//         ...parsedData,
+
+//         id: `new-${Date.now()}`,
+//       };
+
+//       const allCompanies = [...dummyCompanies, newCompany];
+
+//       setCompanies(allCompanies);
+
+//       setFilteredCompanies(allCompanies);
+
+//       // Select the newly added company
+
+//       setSelectedCompanyId(newCompany.id);
+
+//       setViewMode(ViewMode.DETAIL);
+//     } catch (error) {
+//       console.error("Error parsing data:", error);
+
+//       setCompanies(dummyCompanies);
+
+//       setFilteredCompanies(dummyCompanies);
+//     }
+//   } else {
+//     // If no data is provided, use dummy data
+
+//     setCompanies(dummyCompanies);
+
+//     setFilteredCompanies(dummyCompanies);
+//   }
+
+//   setLoading(false);
+// }, [searchParams]);
