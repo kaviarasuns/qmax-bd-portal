@@ -33,7 +33,7 @@ export const getLatestApprovedProspect = query({
 
     const prospect = await ctx.db
       .query("companyProspects")
-      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      // .withIndex("by_userId", (q) => q.eq("userId", userId))
       .filter((q) => q.eq(q.field("status"), "Approved"))
       .order("asc")
       .first();
@@ -63,6 +63,7 @@ export const addCompanyProspect = mutation({
       website: args.website,
       status: "Pending", // Default status for new entries
       createdAt: Date.now(),
+      updatedAt: Date.now(), // Use the same timestamp for both created and updated
       dateTime: Date.now(), // Store as timestamp
       notes: args.notes,
     });
@@ -195,22 +196,10 @@ export const updateCompanyProspect = mutation({
       throw new Error("Authentication required to update company prospect");
     }
 
-    // Optional: Check if the user has permission to update this prospect
+    // Check if the prospect exists
     const prospect = await ctx.db.get(args.id);
     if (!prospect) {
       throw new Error("Company prospect not found");
-    }
-
-    if (prospect.userId !== userId) {
-      // Check if user has admin/manager role
-      const userRole = await ctx.db
-        .query("userRoles")
-        .withIndex("by_userId", (q) => q.eq("userId", userId))
-        .unique();
-
-      if (!userRole || !["admin", "manager"].includes(userRole.role)) {
-        throw new Error("Permission denied: Can only edit your own prospects");
-      }
     }
 
     // Update all fields
@@ -240,8 +229,54 @@ export const updateCompanyProspect = mutation({
   },
 });
 
+// Save company prospect draft
+export const saveCompanyProspectDraft = mutation({
+  args: {
+    companyName: v.string(),
+    website: v.string(),
+    linkedIn: v.string(),
+    country: v.string(),
+    headquarters: v.string(),
+    companyType: v.string(),
+    industry: v.string(),
+    endProduct: v.string(),
+    employees: v.string(),
+    ceoName: v.string(),
+    ceoLinkedIn: v.string(),
+    ceoEmail: v.string(),
+    phoneNumber: v.string(),
+    fundingStage: v.string(),
+    rdLocations: v.string(),
+    potentialNeeds: v.string(),
+    contacts: v.array(
+      v.object({
+        email: v.string(),
+        linkedIn: v.string(),
+      }),
+    ),
+    notes: v.optional(v.string()),
+  },
+
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Authentication required to save draft");
+    }
+
+    // Create a new prospect with status Draft
+    const id = await ctx.db.insert("companyProspects", {
+      ...args,
+      userId,
+      status: "Draft",
+      createdAt: Date.now(),
+    });
+
+    return id;
+  },
+});
+
 // Fetch all company prospects
-export const listCompanyProspects = query({
+export const listAllCompanyProspects = query({
   args: {
     limit: v.optional(v.number()),
   },
@@ -265,6 +300,42 @@ export const listCompanyProspects = query({
     const prospects = await ctx.db
       .query("companyProspects")
       // Order by creation time, most recent first
+      .order("desc")
+      .take(limit);
+
+    return prospects;
+  },
+});
+
+export const listCompanyProspectsByStatus = query({
+  args: {
+    status: v.union(
+      v.literal("Pending"),
+      v.literal("Approved"),
+      v.literal("Rejected"),
+      v.literal("Completed"),
+    ),
+    limit: v.optional(v.number()),
+  },
+
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity) {
+      return null;
+    }
+
+    const userId = await getAuthUserId(ctx);
+
+    if (!userId) {
+      throw new Error("Authentication required to list company prospects");
+    }
+
+    const limit = args.limit ?? 50;
+
+    const prospects = await ctx.db
+      .query("companyProspects")
+      .filter((q) => q.eq(q.field("status"), args.status))
       .order("desc")
       .take(limit);
 

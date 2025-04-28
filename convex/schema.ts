@@ -24,6 +24,7 @@ export default defineSchema({
     website: v.string(),
     status: v.string(),
     createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
     notes: v.optional(v.string()),
     // Optional fields for executive update
     linkedIn: v.optional(v.string()),

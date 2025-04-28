@@ -41,7 +41,7 @@ export default function SignIn() {
 
     try {
       await signIn("password", formData);
-      router.push("/dashboard");
+      router.push("/dashboard?page=companies");
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "An error occurred";
@@ -60,8 +60,8 @@ export default function SignIn() {
         height={200}
         priority
       />
-      <p className="mx-auto max-w-[300px] text-gray-500 md:text-xl">
-        Streamline your company prospecting and approval process
+      <p className="mx-auto max-w-[300px] text-gray-500 text-xl">
+        Business Development Portal
       </p>
       <form className="flex flex-col gap-2 w-[300px]" onSubmit={handleSubmit}>
         <input

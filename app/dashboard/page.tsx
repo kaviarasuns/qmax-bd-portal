@@ -24,11 +24,24 @@ import { useConvexAuth, useQuery } from "convex/react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
+const getPageTitle = (page: string | null) => {
+  switch (page) {
+    case "companies":
+      return "Companies";
+    case "enterDetails":
+      return "Enter Prospect Details";
+    case "viewDetails":
+      return "View Prospect Details";
+  }
+};
+
 export default function Page() {
   const [userRole, setUserRole] = useState<string | null>(null);
   const { isAuthenticated } = useConvexAuth();
   const searchParams = useSearchParams();
   const page = searchParams.get("page");
+  const pageTitle = getPageTitle(page);
+  console.log("Page title:", page);
 
   // Fetch user role from Convex
   const role = useQuery(api.myFunctions.getUserRole);
@@ -59,13 +72,11 @@ export default function Page() {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">
-                    Building Your Application
-                  </BreadcrumbLink>
+                  <BreadcrumbLink href="#">Qmax BD Portal</BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>Data Fetching</BreadcrumbPage>
+                  <BreadcrumbPage>{pageTitle}</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
@@ -91,14 +102,16 @@ const useDashboardContent = ({
   if (!isAuthenticated) return null;
 
   // Handle details page view
-  if (page === "details") {
-    if (userRole === "manager") return <ViewProspects />;
-    if (userRole === "executive") return <ProspectSubmissionForm />;
-  }
+  if (userRole === "manager" && page === "viewDetails")
+    return <ViewProspects />;
+  if (userRole === "executive" && page === "enterDetails")
+    return <ProspectSubmissionForm />;
 
   // Handle dashboard view
-  if (userRole === "executive") return <ExecutiveDashboardContent />;
-  if (userRole === "manager") return <ManagerDashboardContent />;
+  if (userRole === "executive" || page === "companies")
+    return <ExecutiveDashboardContent />;
+  if (userRole === "manager" || page === "companies")
+    return <ManagerDashboardContent />;
 
   return null;
 };

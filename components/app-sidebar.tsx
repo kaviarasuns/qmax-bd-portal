@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Bot, GalleryVerticalEnd, SquareTerminal } from "lucide-react";
+import { Bot, SquareTerminal } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
@@ -16,39 +16,54 @@ import Image from "next/image";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
-// This is sample data.
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/q_logo.png",
-  },
-  teams: [
+const getNavMainByRole = (role?: string) => {
+  const defaultNav = [
     {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-  ],
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
+      title: "Companies",
+      url: "/dashboard?page=companies",
       icon: SquareTerminal,
-      pattern: "/dashboard", // Exact match for dashboard
+      pattern: "/dashboard?page=companies",
     },
-    {
-      title: "Detailed Info",
-      url: "/dashboard?page=details",
-      icon: Bot,
-      pattern: "/dashboard?page=details", // Match dashboard with query param
-    },
-  ],
+  ];
+
+  switch (role) {
+    case "executive":
+      return [
+        ...defaultNav,
+        {
+          title: "Enter Details",
+          url: "/dashboard?page=enterDetails",
+          icon: Bot,
+          pattern: "/dashboard?page=enterDetails",
+        },
+      ];
+    case "manager":
+      return [
+        ...defaultNav,
+        {
+          title: "View Details",
+          url: "/dashboard?page=viewDetails",
+          icon: Bot,
+          pattern: "/dashboard?page=viewDetails",
+        },
+      ];
+    default:
+      return defaultNav;
+  }
+};
+
+const defaultUserData = {
+  name: "Guest",
+  email: "",
+  avatar: "/q_logo.png",
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const userWithRoles = useQuery(api.myFunctions.getCurrentUserWithRoles);
+  console.log("userWithRoles", userWithRoles);
 
+  const userRole = userWithRoles?.roles?.[0]?.role;
+  const navItems = getNavMainByRole(userRole);
   // Create a user object from userWithRoles data
   const userData = userWithRoles?.user
     ? {
@@ -56,7 +71,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         email: userWithRoles.user.email || "",
         avatar: "/q_logo.png", // Fallback to default avatar
       }
-    : data.user;
+    : defaultUserData;
 
   console.log("userWithRoles", userWithRoles?.user?.email);
 
@@ -71,8 +86,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           priority
         />
       </SidebarHeader>
-      <SidebarContent>
-        <NavMain items={data.navMain} />
+      <SidebarContent className="mt-5">
+        <NavMain items={navItems} />
         {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>

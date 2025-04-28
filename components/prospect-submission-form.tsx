@@ -4,7 +4,13 @@ import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { CalendarIcon, PlusCircle, Trash2 } from "lucide-react";
+import {
+  CalendarIcon,
+  PlusCircle,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { format } from "date-fns";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -68,74 +74,108 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function ProspectSubmissionForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [currentProspectIndex, setCurrentProspectIndex] = useState(0);
 
-  // Add the mutation hook
+  // Add the mutation hooks
   const updateProspect = useMutation(api.myFunctions.updateCompanyProspect);
 
-  // Fetch latest approved prospect
-  const latestProspect = useQuery(api.myFunctions.getLatestApprovedProspect);
+  // Fetch only approved prospects
+  const prospects =
+    useQuery(api.myFunctions.listCompanyProspectsByStatus, {
+      status: "Approved",
+      limit: 50,
+    }) || [];
+  const currentProspect = prospects[currentProspectIndex];
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      companyName: latestProspect?.companyName || "",
-      website: latestProspect?.website || "",
-      linkedIn: "",
-      country: "",
-      headquarters: "",
-      companyType: "Private",
-      industry: "",
-      endProduct: "",
-      employees: "",
-      ceoName: "",
-      ceoLinkedIn: "",
-      ceoEmail: "",
-      phoneNumber: "",
-      fundingStage: "",
-      rdLocations: "",
-      potentialNeeds: "",
-      contacts: [{ email: "", linkedIn: "" }],
-      notes: "",
-      dateTime: new Date(),
+      companyName: currentProspect?.companyName || "",
+      website: currentProspect?.website || "",
+      linkedIn: currentProspect?.linkedIn || "",
+      country: currentProspect?.country || "",
+      headquarters: currentProspect?.headquarters || "",
+      companyType:
+        (currentProspect?.companyType as
+          | "Public"
+          | "Private"
+          | "Startup"
+          | "Non-profit") || "Private",
+      industry: currentProspect?.industry || "",
+      endProduct: currentProspect?.endProduct || "",
+      employees: currentProspect?.employees || "",
+      ceoName: currentProspect?.ceoName || "",
+      ceoLinkedIn: currentProspect?.ceoLinkedIn || "",
+      ceoEmail: currentProspect?.ceoEmail || "",
+      phoneNumber: currentProspect?.phoneNumber || "",
+      fundingStage: currentProspect?.fundingStage || "",
+      rdLocations: currentProspect?.rdLocations || "",
+      potentialNeeds: currentProspect?.potentialNeeds || "",
+      contacts: currentProspect?.contacts || [{ email: "", linkedIn: "" }],
+      notes: currentProspect?.notes || "",
+      dateTime: currentProspect?.dateTime
+        ? new Date(currentProspect.dateTime)
+        : new Date(),
     },
   });
 
-  // Update form when latestProspect changes (including when it becomes null)
+  // Update form when currentProspect changes
   useEffect(() => {
-    // Reset all fields whether latestProspect exists or not
+    if (!currentProspect) return;
+
     form.reset({
-      companyName: latestProspect?.companyName || "",
-      website: latestProspect?.website || "",
-      linkedIn: "",
-      country: "",
-      headquarters: "",
-      companyType: "Private",
-      industry: "",
-      endProduct: "",
-      employees: "",
-      ceoName: "",
-      ceoLinkedIn: "",
-      ceoEmail: "",
-      phoneNumber: "",
-      fundingStage: "",
-      rdLocations: "",
-      potentialNeeds: "",
-      contacts: [{ email: "", linkedIn: "" }],
-      notes: "",
-      dateTime: new Date(),
+      companyName: currentProspect?.companyName || "",
+      website: currentProspect?.website || "",
+      linkedIn: currentProspect?.linkedIn || "",
+      country: currentProspect?.country || "",
+      headquarters: currentProspect?.headquarters || "",
+      companyType:
+        (currentProspect?.companyType as
+          | "Public"
+          | "Private"
+          | "Startup"
+          | "Non-profit") || "Private",
+      industry: currentProspect?.industry || "",
+      endProduct: currentProspect?.endProduct || "",
+      employees: currentProspect?.employees || "",
+      ceoName: currentProspect?.ceoName || "",
+      ceoLinkedIn: currentProspect?.ceoLinkedIn || "",
+      ceoEmail: currentProspect?.ceoEmail || "",
+      phoneNumber: currentProspect?.phoneNumber || "",
+      fundingStage: currentProspect?.fundingStage || "",
+      rdLocations: currentProspect?.rdLocations || "",
+      potentialNeeds: currentProspect?.potentialNeeds || "",
+      contacts: currentProspect?.contacts || [{ email: "", linkedIn: "" }],
+      notes: currentProspect?.notes || "",
+      dateTime: currentProspect?.dateTime
+        ? new Date(currentProspect.dateTime)
+        : new Date(),
     });
-  }, [latestProspect, form]);
+  }, [currentProspect, form]);
+
+  const navigateToNextProspect = () => {
+    if (currentProspectIndex < prospects.length - 1) {
+      setCurrentProspectIndex(currentProspectIndex + 1);
+    }
+  };
+
+  const navigateToPreviousProspect = () => {
+    if (currentProspectIndex > 0) {
+      setCurrentProspectIndex(currentProspectIndex - 1);
+    }
+  };
 
   async function onSubmit(data: FormValues) {
     setIsSubmitting(true);
     try {
-      if (!latestProspect?._id) {
+      if (!currentProspect?._id) {
         throw new Error("No prospect ID found");
       }
 
       // Ensure all required fields are strings (not undefined)
       await updateProspect({
-        id: latestProspect._id,
+        id: currentProspect._id,
         companyName: data.companyName,
         website: data.website,
         linkedIn: data.linkedIn,
@@ -154,31 +194,7 @@ export default function ProspectSubmissionForm() {
         potentialNeeds: data.potentialNeeds || "",
         contacts: data.contacts,
         notes: data.notes || "",
-        status: "Completed",
-      });
-
-      // The latestProspect will automatically update through Convex's reactive query
-      // Reset form with the latest prospect data
-      form.reset({
-        companyName: latestProspect?.companyName || "",
-        website: latestProspect?.website || "",
-        linkedIn: "",
-        country: "",
-        headquarters: "",
-        companyType: "Private",
-        industry: "",
-        endProduct: "",
-        employees: "",
-        ceoName: "",
-        ceoLinkedIn: "",
-        ceoEmail: "",
-        phoneNumber: "",
-        fundingStage: "",
-        rdLocations: "",
-        potentialNeeds: "",
-        contacts: [{ email: "", linkedIn: "" }],
-        notes: "",
-        dateTime: new Date(),
+        status: "Submitted",
       });
 
       toast.success("Company prospect updated successfully!");
@@ -187,6 +203,46 @@ export default function ProspectSubmissionForm() {
       console.error("Error updating prospect:", error);
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function onSave() {
+    setIsSaving(true);
+    try {
+      if (!currentProspect?._id) {
+        throw new Error("No prospect ID found");
+      }
+
+      const formData = form.getValues();
+      await updateProspect({
+        id: currentProspect._id,
+        companyName: formData.companyName,
+        website: formData.website,
+        linkedIn: formData.linkedIn,
+        country: formData.country,
+        headquarters: formData.headquarters,
+        companyType: formData.companyType,
+        industry: formData.industry,
+        endProduct: formData.endProduct,
+        employees: formData.employees,
+        ceoName: formData.ceoName,
+        ceoLinkedIn: formData.ceoLinkedIn,
+        ceoEmail: formData.ceoEmail,
+        phoneNumber: formData.phoneNumber,
+        fundingStage: formData.fundingStage || "",
+        rdLocations: formData.rdLocations || "",
+        potentialNeeds: formData.potentialNeeds || "",
+        contacts: formData.contacts,
+        notes: formData.notes || "",
+        status: "Approved",
+      });
+
+      toast.success("Draft saved successfully!");
+    } catch (error) {
+      toast.error("Failed to save draft. Please try again.");
+      console.error("Error saving draft:", error);
+    } finally {
+      setIsSaving(false);
     }
   }
 
@@ -211,6 +267,32 @@ export default function ProspectSubmissionForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={navigateToPreviousProspect}
+              disabled={currentProspectIndex === 0}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Prospect {currentProspectIndex + 1} of {prospects.length}
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={navigateToNextProspect}
+              disabled={currentProspectIndex === prospects.length - 1}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
         <Card>
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -604,8 +686,17 @@ export default function ProspectSubmissionForm() {
           </CardContent>
         </Card>
 
-        <div className="flex justify-end">
-          <Button type="submit" size="lg" disabled={isSubmitting}>
+        <div className="flex justify-end gap-4">
+          <Button
+            type="button"
+            size="lg"
+            variant="outline"
+            onClick={onSave}
+            disabled={isSaving || isSubmitting}
+          >
+            {isSaving ? "Saving..." : "Save Draft"}
+          </Button>
+          <Button type="submit" size="lg" disabled={isSubmitting || isSaving}>
             {isSubmitting ? "Submitting..." : "Submit"}
           </Button>
         </div>

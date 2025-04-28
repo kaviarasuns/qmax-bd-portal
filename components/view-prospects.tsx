@@ -39,12 +39,38 @@ import {
 } from "@/components/ui/table";
 
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { useQuery } from "convex/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 enum ViewMode {
   LIST = 0,
   DETAIL = 1,
+}
+
+interface CompanyProspect {
+  _id: Id<"companyProspects">;
+  companyName: string;
+  website: string;
+  linkedIn?: string;
+  country?: string;
+  headquarters?: string;
+  companyType?: string;
+  industry?: string;
+  endProduct?: string;
+  employees?: string;
+  ceoName?: string;
+  ceoLinkedIn?: string;
+  ceoEmail?: string;
+  phoneNumber?: string;
+  fundingStage?: string;
+  rdLocations?: string;
+  potentialNeeds?: string;
+  contacts?: Array<{ email: string; linkedIn: string }>;
+  notes?: string;
+  dateTime?: number;
+  status: "Pending" | "Approved" | "Rejected" | "Completed";
 }
 
 const formatDate = (dateTime: number | undefined) => {
@@ -63,21 +89,73 @@ export default function ViewProspects() {
     null,
   );
   const [searchQuery, setSearchQuery] = useState("");
+  const [companies, setCompanies] = useState<CompanyProspect[]>([]);
+  const [filteredCompanies, setFilteredCompanies] = useState<CompanyProspect[]>(
+    [],
+  );
+  const [statusFilter] = useState<
+    "Pending" | "Approved" | "Rejected" | "Completed"
+  >("Completed");
+  const searchParams = useSearchParams();
 
-  // Replace the dummy data with Convex query
-  const companies =
-    useQuery(api.myFunctions.listCompanyProspects, {
-      limit: 50,
-    }) || [];
+  const rawCompanies = useQuery(api.myFunctions.listCompanyProspectsByStatus, {
+    status: statusFilter,
+    limit: 50,
+  });
 
-  // Filter companies based on search query
-  const filteredCompanies = companies;
+  // Update companies state when raw data changes
+  useEffect(() => {
+    if (rawCompanies) {
+      // Cast the raw data to our CompanyProspect type
+      const typedCompanies = rawCompanies.map((company) => ({
+        ...company,
+        status: company.status as
+          | "Pending"
+          | "Approved"
+          | "Rejected"
+          | "Completed",
+      }));
+      setCompanies(typedCompanies);
+      setFilteredCompanies(typedCompanies);
+    }
+  }, [rawCompanies]);
+
+  // Filter companies when search query changes
+  useEffect(() => {
+    if (companies.length > 0) {
+      const filtered = companies.filter(
+        (company) =>
+          company.companyName
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          company.industry?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          company.country?.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
+      setFilteredCompanies(filtered);
+    }
+  }, [searchQuery, companies]);
+
+  useEffect(() => {
+    const data = searchParams.get("data");
+    if (data) {
+      try {
+        const parsedData = JSON.parse(decodeURIComponent(data));
+        if (parsedData.dateTime) {
+          parsedData.dateTime = new Date(parsedData.dateTime).getTime();
+        }
+        setSelectedCompanyId(parsedData._id);
+        setViewMode(ViewMode.DETAIL);
+      } catch (error) {
+        console.error("Error parsing data:", error);
+      }
+    }
+  }, [searchParams]);
 
   // Update loading state to use Convex query status
-  const loading = companies === undefined;
+  const loading = rawCompanies === undefined;
 
   const selectedCompany = selectedCompanyId
-    ? companies.find((company) => company._id === selectedCompanyId)
+    ? filteredCompanies.find((company) => company._id === selectedCompanyId)
     : null;
 
   const handleCompanySelect = (id: string) => {
@@ -88,22 +166,22 @@ export default function ViewProspects() {
   const navigateToNextCompany = () => {
     if (!selectedCompanyId) return;
 
-    const currentIndex = companies.findIndex(
+    const currentIndex = filteredCompanies.findIndex(
       (company) => company._id === selectedCompanyId,
     );
-    if (currentIndex < companies.length - 1) {
-      setSelectedCompanyId(companies[currentIndex + 1]._id);
+    if (currentIndex < filteredCompanies.length - 1) {
+      setSelectedCompanyId(filteredCompanies[currentIndex + 1]._id);
     }
   };
 
   const navigateToPreviousCompany = () => {
     if (!selectedCompanyId) return;
 
-    const currentIndex = companies.findIndex(
+    const currentIndex = filteredCompanies.findIndex(
       (company) => company._id === selectedCompanyId,
     );
     if (currentIndex > 0) {
-      setSelectedCompanyId(companies[currentIndex - 1]._id);
+      setSelectedCompanyId(filteredCompanies[currentIndex - 1]._id);
     }
   };
 
@@ -158,7 +236,11 @@ export default function ViewProspects() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              className="flex items-center gap-2"
+              disabled
+            >
               <Filter className="h-4 w-4" />
               Filter
             </Button>
@@ -219,8 +301,8 @@ export default function ViewProspects() {
             </CardContent>
             <CardFooter className="flex justify-between py-4">
               <div className="text-sm text-muted-foreground">
-                Showing {filteredCompanies.length} of {companies.length}{" "}
-                companies
+                Showing {filteredCompanies.length} of{" "}
+                {rawCompanies?.length || 0} companies
               </div>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="icon" disabled={true}>
@@ -242,23 +324,29 @@ export default function ViewProspects() {
                 size="icon"
                 onClick={navigateToPreviousCompany}
                 disabled={
-                  companies.findIndex((c) => c._id === selectedCompanyId) === 0
+                  filteredCompanies.findIndex(
+                    (c) => c._id === selectedCompanyId,
+                  ) === 0
                 }
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <span className="text-sm text-muted-foreground">
                 Company{" "}
-                {companies.findIndex((c) => c._id === selectedCompanyId) + 1} of{" "}
-                {companies.length}
+                {filteredCompanies.findIndex(
+                  (c) => c._id === selectedCompanyId,
+                ) + 1}{" "}
+                of {filteredCompanies.length}
               </span>
               <Button
                 variant="outline"
                 size="icon"
                 onClick={navigateToNextCompany}
                 disabled={
-                  companies.findIndex((c) => c._id === selectedCompanyId) ===
-                  companies.length - 1
+                  filteredCompanies.findIndex(
+                    (c) => c._id === selectedCompanyId,
+                  ) ===
+                  filteredCompanies.length - 1
                 }
               >
                 <ChevronRight className="h-4 w-4" />
@@ -492,13 +580,21 @@ export default function ViewProspects() {
           </div>
 
           <div className="flex justify-between mt-8">
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              className="flex items-center gap-2"
+              disabled
+            >
               <Calendar className="h-4 w-4" />
               Schedule Follow-up
             </Button>
             <div className="flex gap-2">
-              <Button variant="outline">Export as PDF</Button>
-              <Button variant="default">Edit Information</Button>
+              <Button variant="outline" disabled>
+                Export as PDF
+              </Button>
+              <Button variant="default" disabled>
+                Edit Information
+              </Button>
             </div>
           </div>
         </>

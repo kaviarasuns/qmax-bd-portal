@@ -1,7 +1,13 @@
 "use client";
-
-import { redirect } from "next/navigation";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
-  redirect("/signin");
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace("/signin");
+  }, [router]);
+
+  return null; // or a loading spinner
 }
