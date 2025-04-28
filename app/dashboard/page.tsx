@@ -108,10 +108,8 @@ const useDashboardContent = ({
     return <ProspectSubmissionForm />;
 
   // Handle dashboard view
-  if (userRole === "executive" || page === "companies")
-    return <ExecutiveDashboardContent />;
-  if (userRole === "manager" || page === "companies")
-    return <ManagerDashboardContent />;
+  if (userRole === "executive") return <ExecutiveDashboardContent />;
+  if (userRole === "manager") return <ManagerDashboardContent />;
 
   return null;
 };
