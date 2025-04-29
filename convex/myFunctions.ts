@@ -313,7 +313,7 @@ export const listCompanyProspectsByStatus = query({
       v.literal("Pending"),
       v.literal("Approved"),
       v.literal("Rejected"),
-      v.literal("Completed"),
+      v.literal("Submitted"),
     ),
     limit: v.optional(v.number()),
   },

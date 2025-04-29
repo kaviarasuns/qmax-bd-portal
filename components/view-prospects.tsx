@@ -94,8 +94,8 @@ export default function ViewProspects() {
     [],
   );
   const [statusFilter] = useState<
-    "Pending" | "Approved" | "Rejected" | "Completed"
-  >("Completed");
+    "Pending" | "Approved" | "Rejected" | "Submitted"
+  >("Submitted");
   const searchParams = useSearchParams();
 
   const rawCompanies = useQuery(api.myFunctions.listCompanyProspectsByStatus, {
