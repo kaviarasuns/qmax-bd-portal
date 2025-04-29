@@ -26,7 +26,7 @@ export default function SignIn() {
   };
 
   const { signIn } = useAuthActions();
-  const [flow, setFlow] = useState<"signIn" | "signUp">("signIn");
+  const [flow] = useState<"signIn" | "signUp">("signIn");
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -88,7 +88,7 @@ export default function SignIn() {
             "Sign up"
           )}
         </Button>
-        <div className="flex flex-row gap-2">
+        {/* <div className="flex flex-row gap-2">
           <span>
             {flow === "signIn"
               ? "Don't have an account?"
@@ -100,7 +100,7 @@ export default function SignIn() {
           >
             {flow === "signIn" ? "Sign up instead" : "Sign in instead"}
           </span>
-        </div>
+        </div> */}
         {error && (
           <div className="bg-red-500/20 border-2 border-red-500/50 rounded-md p-2">
             <p className="text-foreground font-mono text-xs">
