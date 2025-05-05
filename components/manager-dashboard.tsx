@@ -18,6 +18,13 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { CompanyProspectsTable } from "./company-prospects-table";
 import { DashboardCards } from "./dashboard-cards";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 // Define the Company interface
 export interface Company {
@@ -26,6 +33,7 @@ export interface Company {
   website: string;
   status: CompanyStatus;
   notes: string;
+  submitterName: string;
 }
 
 // Use a type for valid status values
@@ -54,6 +62,7 @@ export function ManagerDashboardContent() {
     website: prospect.website,
     status: prospect.status as CompanyStatus,
     notes: prospect.notes || "",
+    submitterName: prospect.submitterName || "Unknown", // Add this line
   }));
 
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
@@ -99,52 +108,88 @@ export function ManagerDashboardContent() {
     <div className="container px-4 py-6 md:px-6 md:py-8">
       <h1 className="text-2xl font-bold mb-6">Manager Dashboard</h1>
 
-      <DashboardCards />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <DashboardCards />
 
-      <Tabs defaultValue="all" className="mt-8">
-        <TabsList>
-          <TabsTrigger value="all">All Companies</TabsTrigger>
-          <TabsTrigger value="pending">Pending</TabsTrigger>
-          <TabsTrigger value="approved">Approved</TabsTrigger>
-          <TabsTrigger value="rejected">Rejected</TabsTrigger>
-        </TabsList>
+        <div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Submission Stats</CardTitle>
+              <CardDescription>
+                Overview of your prospect submissions
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-3">
+                <StatCard value={companies.length} label="Total" />
+                <StatCard
+                  value={companies.filter((c) => c.status === "Pending").length}
+                  label="Pending"
+                />
+                <StatCard
+                  value={
+                    companies.filter((c) => c.status === "Approved").length
+                  }
+                  label="Approved"
+                />
+                <StatCard
+                  value={
+                    companies.filter((c) => c.status === "Rejected").length
+                  }
+                  label="Rejected"
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-        <TabsContent value="all" className="mt-4">
-          <CompanyProspectsTable
-            companies={companies}
-            onReview={handleReview}
-            showStatus={true}
-            showActions={true} // Show actions for all companies
-          />
-        </TabsContent>
+          <div className="mt-4">
+            <Tabs defaultValue="all">
+              <TabsList>
+                <TabsTrigger value="all">All Companies</TabsTrigger>
+                <TabsTrigger value="pending">Pending</TabsTrigger>
+                <TabsTrigger value="approved">Approved</TabsTrigger>
+                <TabsTrigger value="rejected">Rejected</TabsTrigger>
+              </TabsList>
 
-        <TabsContent value="pending" className="mt-4">
-          <CompanyProspectsTable
-            companies={companies.filter((c) => c.status === "Pending")}
-            onReview={handleReview}
-            showStatus={true}
-            showActions={true} // Show actions for pending companies
-          />
-        </TabsContent>
+              <TabsContent value="all" className="mt-4">
+                <CompanyProspectsTable
+                  companies={companies}
+                  onReview={handleReview}
+                  showStatus={true}
+                  showActions={true} // Show actions for all companies
+                />
+              </TabsContent>
 
-        <TabsContent value="approved" className="mt-4">
-          <CompanyProspectsTable
-            companies={companies.filter((c) => c.status === "Approved")}
-            onReview={handleReview}
-            showStatus={true}
-            showActions={true} // Show actions for approved companies
-          />
-        </TabsContent>
+              <TabsContent value="pending" className="mt-4">
+                <CompanyProspectsTable
+                  companies={companies.filter((c) => c.status === "Pending")}
+                  onReview={handleReview}
+                  showStatus={true}
+                  showActions={true} // Show actions for pending companies
+                />
+              </TabsContent>
 
-        <TabsContent value="rejected" className="mt-4">
-          <CompanyProspectsTable
-            companies={companies.filter((c) => c.status === "Rejected")}
-            onReview={handleReview}
-            showStatus={true}
-            showActions={true} // Show actions for rejected companies
-          />
-        </TabsContent>
-      </Tabs>
+              <TabsContent value="approved" className="mt-4">
+                <CompanyProspectsTable
+                  companies={companies.filter((c) => c.status === "Approved")}
+                  onReview={handleReview}
+                  showStatus={true}
+                  showActions={true} // Show actions for approved companies
+                />
+              </TabsContent>
+
+              <TabsContent value="rejected" className="mt-4">
+                <CompanyProspectsTable
+                  companies={companies.filter((c) => c.status === "Rejected")}
+                  onReview={handleReview}
+                  showStatus={true}
+                  showActions={true} // Show actions for rejected companies
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
+      </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-md">
@@ -221,6 +266,20 @@ export function ManagerDashboardContent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+interface StatCardProps {
+  value: number;
+  label: string;
+}
+
+function StatCard({ value, label }: StatCardProps) {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-lg border p-4">
+      <span className="text-2xl font-bold">{value}</span>
+      <span className="text-sm text-gray-500">{label}</span>
     </div>
   );
 }

@@ -6,7 +6,11 @@ import {
 
 const isSignInPage = createRouteMatcher(["/signin"]);
 const isRootPage = createRouteMatcher(["/"]);
-const isProtectedRoute = createRouteMatcher(["/dashboard", "/server"]);
+const isProtectedRoute = createRouteMatcher([
+  "/dashboard",
+  "/server",
+  "/profile",
+]);
 
 export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
   const isAuthenticated = await convexAuth.isAuthenticated();

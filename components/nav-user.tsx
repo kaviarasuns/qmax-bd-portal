@@ -91,12 +91,11 @@ export function NavUser({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem disabled>
+              <DropdownMenuItem onClick={() => router.push("/profile")}>
                 <BadgeCheck />
-                Account
+                Profile Settings
               </DropdownMenuItem>
               <DropdownMenuItem disabled>
                 <Bell />

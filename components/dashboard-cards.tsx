@@ -9,47 +9,49 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Company } from "./manager-dashboard";
 
 export function DashboardCards() {
   const [companyName, setCompanyName] = useState("");
   const [companyWebsite, setCompanyWebsite] = useState("");
+  const [headquarters, setHeadquarters] = useState("");
+  const [employees, setEmployees] = useState("");
+  const [potentialNeeds, setPotentialNeeds] = useState("");
+  const [industry, setIndustry] = useState("");
+  const [notes, setNotes] = useState("");
 
-  // Fetch companies from Convex
-  const companyProspects =
-    useQuery(api.myFunctions.listAllCompanyProspects, {}) || [];
   const addCompanyProspect = useMutation(api.myFunctions.addCompanyProspect);
-
-  // Map Convex data to Company interface
-  const companies: Company[] = companyProspects.map((prospect) => ({
-    id: prospect._id,
-    name: prospect.companyName,
-    website: prospect.website,
-    status: prospect.status as "Pending" | "Approved" | "Rejected",
-    notes: prospect.notes || "",
-  }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
       await addCompanyProspect({
-        companyName: companyName,
+        companyName,
         website: companyWebsite,
-        notes: "",
+        headquarters,
+        employees,
+        potentialNeeds,
+        industry,
+        notes,
       });
 
+      // Reset all form fields
       setCompanyName("");
       setCompanyWebsite("");
+      setHeadquarters("");
+      setEmployees("");
+      setPotentialNeeds("");
+      setIndustry("");
+      setNotes("");
     } catch (error) {
       console.error("Failed to add company prospect:", error);
     }
   };
 
   return (
-    <div className="grid gap-6 md:grid-cols-2">
+    <div className="">
       <Card>
         <CardHeader>
           <CardTitle>Add New Prospect</CardTitle>
@@ -58,71 +60,86 @@ export function DashboardCards() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="company-name">Company Name</Label>
-              <Input
-                id="company-name"
-                placeholder="Enter company name"
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-                required
-              />
+          <form onSubmit={handleSubmit}>
+            <div className="flex flex-col gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="company-name">Company Name</Label>
+                <Input
+                  id="company-name"
+                  placeholder="Enter company name"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="company-website">Company Website</Label>
+                <Input
+                  id="company-website"
+                  placeholder="https://example.com"
+                  value={companyWebsite}
+                  onChange={(e) => setCompanyWebsite(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="headquarters">Headquarters</Label>
+                <Input
+                  id="headquarters"
+                  placeholder="Company headquarters"
+                  value={headquarters}
+                  onChange={(e) => setHeadquarters(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="employees">Number of Employees</Label>
+                <Input
+                  id="employees"
+                  placeholder="e.g. 100-500"
+                  value={employees}
+                  onChange={(e) => setEmployees(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="industry">Industry</Label>
+                <Input
+                  id="industry"
+                  placeholder="Company industry"
+                  value={industry}
+                  onChange={(e) => setIndustry(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="potential-needs">Potential Needs</Label>
+                <Input
+                  id="potential-needs"
+                  placeholder="Potential needs"
+                  value={potentialNeeds}
+                  onChange={(e) => setPotentialNeeds(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="col-span-2 space-y-2">
+                <Label htmlFor="notes">Notes</Label>
+                <Input
+                  id="notes"
+                  placeholder="Additional notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                />
+              </div>
+              <div className="col-span-2">
+                <Button type="submit" className="w-full">
+                  Add Company
+                </Button>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="company-website">Company Website</Label>
-              <Input
-                id="company-website"
-                placeholder="https://example.com"
-                value={companyWebsite}
-                onChange={(e) => setCompanyWebsite(e.target.value)}
-                required
-              />
-            </div>
-            <Button type="submit">Add Company</Button>
           </form>
         </CardContent>
       </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Submission Stats</CardTitle>
-          <CardDescription>
-            Overview of your prospect submissions
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-3">
-            <StatCard value={companies.length} label="Total" />
-            <StatCard
-              value={companies.filter((c) => c.status === "Pending").length}
-              label="Pending"
-            />
-            <StatCard
-              value={companies.filter((c) => c.status === "Approved").length}
-              label="Approved"
-            />
-            <StatCard
-              value={companies.filter((c) => c.status === "Rejected").length}
-              label="Rejected"
-            />
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-interface StatCardProps {
-  value: number;
-  label: string;
-}
-
-function StatCard({ value, label }: StatCardProps) {
-  return (
-    <div className="flex flex-col items-center justify-center rounded-lg border p-4">
-      <span className="text-2xl font-bold">{value}</span>
-      <span className="text-sm text-gray-500">{label}</span>
     </div>
   );
 }

@@ -45,8 +45,12 @@ export const getLatestApprovedProspect = query({
 // Add a company prospect to the database
 export const addCompanyProspect = mutation({
   args: {
-    companyName: v.string(), // Changed from 'name' to 'companyName'
+    companyName: v.string(),
     website: v.string(),
+    headquarters: v.string(),
+    employees: v.string(),
+    potentialNeeds: v.string(),
+    industry: v.string(),
     notes: v.optional(v.string()),
   },
 
@@ -57,14 +61,25 @@ export const addCompanyProspect = mutation({
       throw new Error("Authentication required to add a company prospect");
     }
 
+    // Get user from users table
+    const user = await ctx.db.get(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
     const id = await ctx.db.insert("companyProspects", {
       userId,
-      companyName: args.companyName, // Changed from args.name to args.companyName
+      submitterName: user.name, // Use name from users table
+      companyName: args.companyName,
       website: args.website,
-      status: "Pending", // Default status for new entries
+      headquarters: args.headquarters,
+      employees: args.employees,
+      potentialNeeds: args.potentialNeeds,
+      industry: args.industry,
+      status: "Pending",
       createdAt: Date.now(),
-      updatedAt: Date.now(), // Use the same timestamp for both created and updated
-      dateTime: Date.now(), // Store as timestamp
+      updatedAt: Date.now(),
+      dateTime: Date.now(),
       notes: args.notes,
     });
 

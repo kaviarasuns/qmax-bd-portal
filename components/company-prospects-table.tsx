@@ -8,20 +8,31 @@ import {
 } from "@/components/ui/table";
 import { Company } from "./manager-dashboard";
 import { Button } from "./ui/button";
+import { useState } from "react";
 
 interface ManagerCompanyTableProps {
   companies: Company[];
   onReview?: (company: Company) => void;
   showStatus?: boolean;
-  showActions?: boolean; // Add this new prop
+  showActions?: boolean;
+  itemsPerPage?: number;
 }
 
 export function CompanyProspectsTable({
   companies,
   onReview = () => {},
   showStatus = true,
-  showActions = false, // Add default value
+  showActions = false,
+  itemsPerPage = 5,
 }: ManagerCompanyTableProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(companies.length / itemsPerPage);
+
+  // Calculate current page items
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentItems = companies.slice(startIndex, endIndex);
+
   return (
     <div className="rounded-md border">
       <Table>
@@ -31,6 +42,7 @@ export function CompanyProspectsTable({
             <TableHead>Website</TableHead>
             {showStatus && <TableHead>Status</TableHead>}
             <TableHead>Notes</TableHead>
+            <TableHead>Submitted By</TableHead>
             {showActions && (
               <TableHead className="text-right">Actions</TableHead>
             )}
@@ -41,7 +53,7 @@ export function CompanyProspectsTable({
             <TableRow>
               <TableCell
                 colSpan={
-                  (showStatus ? 1 : 0) + (showActions ? 1 : 0) + 3 // Dynamically calculate colspan
+                  (showStatus ? 1 : 0) + (showActions ? 1 : 0) + 4 // Updated colspan to include submitter column
                 }
                 className="text-center py-4 text-gray-500"
               >
@@ -49,7 +61,7 @@ export function CompanyProspectsTable({
               </TableCell>
             </TableRow>
           ) : (
-            companies.map((company) => (
+            currentItems.map((company) => (
               <TableRow key={company.id}>
                 <TableCell className="font-medium">{company.name}</TableCell>
                 <TableCell>
@@ -86,11 +98,13 @@ export function CompanyProspectsTable({
                     <span className="text-gray-400 italic">No notes</span>
                   )}
                 </TableCell>
+                <TableCell>{company.submitterName || "Unknown"}</TableCell>
                 {showActions && (
                   <TableCell className="text-right">
                     <Button
                       variant="ghost"
                       size="sm"
+                      className="h-5"
                       onClick={() => onReview(company)}
                     >
                       {company.status === "Pending" ? "Review" : "View Details"}
@@ -102,6 +116,31 @@ export function CompanyProspectsTable({
           )}
         </TableBody>
       </Table>
+      {companies.length > itemsPerPage && (
+        <div className="flex items-center justify-end space-x-2 py-4 px-4 border-t">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+          <span className="text-sm text-gray-600">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

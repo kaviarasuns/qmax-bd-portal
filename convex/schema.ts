@@ -50,6 +50,7 @@ export default defineSchema({
       ),
     ),
     dateTime: v.optional(v.number()),
+    submitterName: v.optional(v.string()), // Add this field
   })
     .index("by_userId", ["userId"])
     .index("by_status", ["status"])
