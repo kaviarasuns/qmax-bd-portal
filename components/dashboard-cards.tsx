@@ -51,7 +51,7 @@ export function DashboardCards() {
   };
 
   return (
-    <div className="">
+    <div className="max-w-2xl">
       <Card>
         <CardHeader>
           <CardTitle>Add New Prospect</CardTitle>

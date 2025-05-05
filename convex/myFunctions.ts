@@ -97,6 +97,8 @@ export const updateCompanyProspectStatus = mutation({
       v.literal("Rejected"),
     ),
     notes: v.optional(v.string()),
+    approverName: v.string(),
+    approverId: v.string(),
   },
 
   handler: async (ctx, args) => {
@@ -108,7 +110,7 @@ export const updateCompanyProspectStatus = mutation({
       );
     }
 
-    // Check if the user has permission (optional, add role checks if needed)
+    // Check if the user has permission
     const userRole = await ctx.db
       .query("userRoles")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
@@ -118,14 +120,20 @@ export const updateCompanyProspectStatus = mutation({
       throw new Error("Only managers can update company prospect status");
     }
 
-    // Define a properly typed update object
-    type CompanyProspectUpdate = {
+    // Define properly typed update object
+    type UpdateData = {
       status: "Pending" | "Approved" | "Rejected";
+      approverName: string;
+      approverId: string;
+      approvedAt: number;
       notes?: string;
     };
 
-    const updateData: CompanyProspectUpdate = {
+    const updateData: UpdateData = {
       status: args.status,
+      approverName: args.approverName,
+      approverId: args.approverId,
+      approvedAt: Date.now(),
     };
 
     // Add notes if provided

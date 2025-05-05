@@ -93,7 +93,10 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => router.push("/profile")}>
+              <DropdownMenuItem
+                disabled
+                onClick={() => router.push("/profile")}
+              >
                 <BadgeCheck />
                 Profile Settings
               </DropdownMenuItem>

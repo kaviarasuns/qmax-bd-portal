@@ -34,6 +34,9 @@ export interface Company {
   status: CompanyStatus;
   notes: string;
   submitterName: string;
+  approverName?: string;
+  approverId?: string;
+  approvedAt?: number;
 }
 
 // Use a type for valid status values
@@ -44,8 +47,8 @@ export function ManagerDashboardContent() {
   const companyProspects =
     useQuery(api.myFunctions.listAllCompanyProspects, {}) || [];
 
-  // const searchParams = useSearchParams();
-  // const currentTab = searchParams.get("tab");
+  // Get current user information
+  const currentUser = useQuery(api.myFunctions.getCurrentUserWithRoles);
 
   // Get the update mutations from Convex
   const updateCompanyProspectStatus = useMutation(
@@ -63,6 +66,9 @@ export function ManagerDashboardContent() {
     status: prospect.status as CompanyStatus,
     notes: prospect.notes || "",
     submitterName: prospect.submitterName || "Unknown", // Add this line
+    approverName: prospect.approverName,
+    approverId: prospect.approverId,
+    approvedAt: prospect.approvedAt,
   }));
 
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
@@ -76,21 +82,29 @@ export function ManagerDashboardContent() {
   };
 
   const handleApprove = async () => {
-    if (!selectedCompany) return;
+    console.log("Current user:", currentUser);
+    if (!selectedCompany || !currentUser?.user?._id || !currentUser.user.name)
+      return;
+    console.log("Approving company:", selectedCompany);
     await updateCompanyProspectStatus({
       id: selectedCompany.id,
       status: "Approved",
       notes: notes,
+      approverName: currentUser.user.name,
+      approverId: currentUser.user._id,
     });
     setIsDialogOpen(false);
   };
 
   const handleReject = async () => {
-    if (!selectedCompany) return;
+    if (!selectedCompany || !currentUser?.user?._id || !currentUser.user.name)
+      return;
     await updateCompanyProspectStatus({
       id: selectedCompany.id,
       status: "Rejected",
       notes: notes,
+      approverName: currentUser.user.name,
+      approverId: currentUser.user._id,
     });
     setIsDialogOpen(false);
   };
@@ -105,13 +119,15 @@ export function ManagerDashboardContent() {
   };
 
   return (
-    <div className="container px-4 py-6 md:px-6 md:py-8">
+    <div className="px-4 py-6 md:px-6 md:py-8">
       <h1 className="text-2xl font-bold mb-6">Manager Dashboard</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <DashboardCards />
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        <div className="col-span-1 md:col-span-5">
+          <DashboardCards />
+        </div>
 
-        <div>
+        <div className="col-span-1 md:col-span-7">
           <Card>
             <CardHeader>
               <CardTitle>Submission Stats</CardTitle>

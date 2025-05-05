@@ -51,6 +51,9 @@ export default defineSchema({
     ),
     dateTime: v.optional(v.number()),
     submitterName: v.optional(v.string()), // Add this field
+    approverName: v.optional(v.string()),
+    approverId: v.optional(v.string()),
+    approvedAt: v.optional(v.number()),
   })
     .index("by_userId", ["userId"])
     .index("by_status", ["status"])

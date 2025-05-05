@@ -43,6 +43,7 @@ export function CompanyProspectsTable({
             {showStatus && <TableHead>Status</TableHead>}
             <TableHead>Notes</TableHead>
             <TableHead>Submitted By</TableHead>
+            {showStatus && <TableHead>Reviewed By</TableHead>}
             {showActions && (
               <TableHead className="text-right">Actions</TableHead>
             )}
@@ -53,7 +54,7 @@ export function CompanyProspectsTable({
             <TableRow>
               <TableCell
                 colSpan={
-                  (showStatus ? 1 : 0) + (showActions ? 1 : 0) + 4 // Updated colspan to include submitter column
+                  (showStatus ? 2 : 0) + (showActions ? 1 : 0) + 4 // Updated colspan to include reviewer column
                 }
                 className="text-center py-4 text-gray-500"
               >
@@ -99,6 +100,17 @@ export function CompanyProspectsTable({
                   )}
                 </TableCell>
                 <TableCell>{company.submitterName || "Unknown"}</TableCell>
+                {showStatus && (
+                  <TableCell>
+                    {(company.status === "Approved" ||
+                      company.status === "Rejected") &&
+                    company.approverName ? (
+                      company.approverName
+                    ) : (
+                      <span className="text-gray-400 italic">-</span>
+                    )}
+                  </TableCell>
+                )}
                 {showActions && (
                   <TableCell className="text-right">
                     <Button
