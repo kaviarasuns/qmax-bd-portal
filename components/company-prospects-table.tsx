@@ -43,7 +43,6 @@ export function CompanyProspectsTable({
             {showStatus && <TableHead>Status</TableHead>}
             <TableHead>Notes</TableHead>
             <TableHead>Submitted By</TableHead>
-            {showStatus && <TableHead>Reviewed By</TableHead>}
             {showActions && (
               <TableHead className="text-right">Actions</TableHead>
             )}
@@ -100,17 +99,6 @@ export function CompanyProspectsTable({
                   )}
                 </TableCell>
                 <TableCell>{company.submitterName || "Unknown"}</TableCell>
-                {showStatus && (
-                  <TableCell>
-                    {(company.status === "Approved" ||
-                      company.status === "Rejected") &&
-                    company.approverName ? (
-                      company.approverName
-                    ) : (
-                      <span className="text-gray-400 italic">-</span>
-                    )}
-                  </TableCell>
-                )}
                 {showActions && (
                   <TableCell className="text-right">
                     <Button

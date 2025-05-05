@@ -217,7 +217,7 @@ export function ManagerDashboardContent() {
                   <span className="block mb-1">
                     <strong>Company:</strong> {selectedCompany.name}
                   </span>
-                  <span className="block">
+                  <span className="block mb-1">
                     <strong>Website:</strong>{" "}
                     <a
                       href={selectedCompany.website}
@@ -228,6 +228,21 @@ export function ManagerDashboardContent() {
                       {selectedCompany.website}
                     </a>
                   </span>
+                  {selectedCompany.approverName && (
+                    <span className="block mb-1">
+                      <strong>Reviewed by:</strong>{" "}
+                      {selectedCompany.approverName}
+                      {selectedCompany.approvedAt && (
+                        <span className="text-gray-500 text-sm ml-2">
+                          (
+                          {new Date(
+                            selectedCompany.approvedAt,
+                          ).toLocaleDateString()}
+                          )
+                        </span>
+                      )}
+                    </span>
+                  )}
                 </span>
               )}
             </DialogDescription>
