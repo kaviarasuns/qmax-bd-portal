@@ -228,21 +228,25 @@ export function ManagerDashboardContent() {
                       {selectedCompany.website}
                     </a>
                   </span>
-                  {selectedCompany.approverName && (
-                    <span className="block mb-1">
-                      <strong>Reviewed by:</strong>{" "}
-                      {selectedCompany.approverName}
-                      {selectedCompany.approvedAt && (
-                        <span className="text-gray-500 text-sm ml-2">
-                          (
-                          {new Date(
-                            selectedCompany.approvedAt,
-                          ).toLocaleDateString()}
-                          )
-                        </span>
-                      )}
-                    </span>
-                  )}
+                  <span className="block mb-1">
+                    <strong>Reviewed by:</strong>{" "}
+                    {selectedCompany.approverName ? (
+                      <>
+                        {selectedCompany.approverName}
+                        {selectedCompany.approvedAt && (
+                          <span className="text-gray-500 text-sm ml-2">
+                            (
+                            {new Date(
+                              selectedCompany.approvedAt,
+                            ).toLocaleDateString()}
+                            )
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      "N/A"
+                    )}
+                  </span>
                 </span>
               )}
             </DialogDescription>
