@@ -318,7 +318,7 @@ export const listAllCompanyProspects = query({
       throw new Error("Authentication required to list company prospects");
     }
 
-    const limit = args.limit ?? 50; // Default limit of 50 prospects
+    const limit = args.limit ?? 10000; // Default limit of 50 prospects
 
     const prospects = await ctx.db
       .query("companyProspects")
