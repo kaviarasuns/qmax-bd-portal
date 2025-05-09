@@ -76,7 +76,8 @@ export function CompanyProspectsTable({
                     href={getFullUrl(company.website)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline"
+                    className="text-blue-600 hover:underline max-w-[200px] inline-block truncate"
+                    title={company.website}
                   >
                     {company.website}
                   </a>
