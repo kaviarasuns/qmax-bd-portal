@@ -9,8 +9,25 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { toast } from "sonner";
+
+const normalizeWebsite = (url: string): string => {
+  if (!url) return "";
+  let normalized = url.trim();
+  // Add https:// if no protocol is specified
+  if (!/^https?:\/\//i.test(normalized)) {
+    normalized = "https://" + normalized;
+  }
+  // Remove protocol for storage
+  normalized = normalized.replace(/^https?:\/\//i, "");
+  // Remove www.
+  normalized = normalized.replace(/^www\./i, "");
+  // Remove trailing slash
+  normalized = normalized.replace(/\/$/, "");
+  return normalized.toLowerCase();
+};
 
 export function DashboardCards() {
   const [companyName, setCompanyName] = useState("");
@@ -22,20 +39,33 @@ export function DashboardCards() {
   const [notes, setNotes] = useState("");
 
   const addCompanyProspect = useMutation(api.myFunctions.addCompanyProspect);
+  const checkWebsiteExists = useQuery(api.myFunctions.checkWebsiteExists, {
+    website: normalizeWebsite(companyWebsite),
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const normalizedWebsite = normalizeWebsite(companyWebsite);
+
+    // Check if website already exists
+    if (checkWebsiteExists) {
+      toast.error("This company website is already in the database.");
+      return;
+    }
+
     try {
       await addCompanyProspect({
         companyName,
-        website: companyWebsite,
+        website: normalizedWebsite,
         headquarters,
         employees,
         potentialNeeds,
         industry,
         notes,
       });
+
+      toast.success("Company prospect added successfully!");
 
       // Reset all form fields
       setCompanyName("");
@@ -47,6 +77,7 @@ export function DashboardCards() {
       setNotes("");
     } catch (error) {
       console.error("Failed to add company prospect:", error);
+      toast.error("Failed to add company prospect. Please try again.");
     }
   };
 
@@ -76,11 +107,17 @@ export function DashboardCards() {
                 <Label htmlFor="company-website">Company Website</Label>
                 <Input
                   id="company-website"
-                  placeholder="https://example.com"
+                  placeholder="example.com"
                   value={companyWebsite}
                   onChange={(e) => setCompanyWebsite(e.target.value)}
+                  className={checkWebsiteExists ? "border-red-500" : ""}
                   required
                 />
+                {checkWebsiteExists && (
+                  <p className="text-sm text-red-500 mt-1">
+                    This company website already submitted
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="headquarters">Headquarters</Label>

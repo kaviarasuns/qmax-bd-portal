@@ -33,6 +33,13 @@ export function CompanyProspectsTable({
   const endIndex = startIndex + itemsPerPage;
   const currentItems = companies.slice(startIndex, endIndex);
 
+  function getFullUrl(website: string): string {
+    if (!website) return "#";
+    return website.startsWith("http://") || website.startsWith("https://")
+      ? website
+      : `https://${website}`;
+  }
+
   return (
     <div className="rounded-md border">
       <Table>
@@ -66,7 +73,7 @@ export function CompanyProspectsTable({
                 <TableCell className="font-medium">{company.name}</TableCell>
                 <TableCell>
                   <a
-                    href={company.website}
+                    href={getFullUrl(company.website)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:underline"

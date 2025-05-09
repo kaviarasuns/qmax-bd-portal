@@ -42,6 +42,19 @@ export const getLatestApprovedProspect = query({
   },
 });
 
+// Check if website already exists
+export const checkWebsiteExists = query({
+  args: { website: v.string() },
+  handler: async (ctx, args) => {
+    const prospects = await ctx.db
+      .query("companyProspects")
+      .filter((q) => q.eq(q.field("website"), args.website))
+      .collect();
+
+    return prospects.length > 0;
+  },
+});
+
 // Add a company prospect to the database
 export const addCompanyProspect = mutation({
   args: {
