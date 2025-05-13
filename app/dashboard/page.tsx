@@ -1,6 +1,7 @@
 "use client";
 
 import { AppSidebar } from "@/components/app-sidebar";
+import { CompanyTabs } from "@/components/company-tabs";
 import { ExecutiveDashboardContent } from "@/components/executive-dashboard";
 import { ManagerDashboardContent } from "@/components/manager-dashboard";
 import ProspectSubmissionForm from "@/components/prospect-submission-form";
@@ -104,6 +105,10 @@ const useDashboardContent = ({
   // Handle details page view
   if (userRole === "manager" && page === "viewDetails")
     return <ViewProspects />;
+
+  if (userRole === "manager" && page === "approveSubmissions")
+    return <CompanyTabs />;
+
   if (userRole === "executive" && page === "enterDetails")
     return <ProspectSubmissionForm />;
 

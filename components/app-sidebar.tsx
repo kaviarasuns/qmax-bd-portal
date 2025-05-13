@@ -1,10 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { Bot, SquareTerminal } from "lucide-react";
+
+import { Building2, FilePlus2, Eye, CheckCircle2 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
+
 import {
   Sidebar,
   SidebarContent,
@@ -21,7 +23,7 @@ const getNavMainByRole = (role?: string) => {
     {
       title: "Companies",
       url: "/dashboard?page=companies",
-      icon: SquareTerminal,
+      icon: Building2,
       pattern: "/dashboard?page=companies",
     },
   ];
@@ -33,7 +35,7 @@ const getNavMainByRole = (role?: string) => {
         {
           title: "Enter Details",
           url: "/dashboard?page=enterDetails",
-          icon: Bot,
+          icon: FilePlus2,
           pattern: "/dashboard?page=enterDetails",
         },
       ];
@@ -41,9 +43,15 @@ const getNavMainByRole = (role?: string) => {
       return [
         ...defaultNav,
         {
+          title: "Approve Submissions",
+          url: "/dashboard?page=approveSubmissions",
+          icon: CheckCircle2,
+          pattern: "/dashboard?page=approveSubmissions",
+        },
+        {
           title: "View Details",
           url: "/dashboard?page=viewDetails",
-          icon: Bot,
+          icon: Eye,
           pattern: "/dashboard?page=viewDetails",
         },
       ];
