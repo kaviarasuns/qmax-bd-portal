@@ -6,13 +6,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Company } from "./manager-dashboard";
 import { Button } from "./ui/button";
 import { useState } from "react";
+import { Company } from "./company-tabs";
+import { CheckCircle, XCircle, Eye, FileEdit } from "lucide-react";
 
 interface ManagerCompanyTableProps {
   companies: Company[];
   onReview?: (company: Company) => void;
+  onApprove?: (company: Company) => void;
+  onReject?: (company: Company) => void;
   showStatus?: boolean;
   showActions?: boolean;
   itemsPerPage?: number;
@@ -21,6 +24,8 @@ interface ManagerCompanyTableProps {
 export function CompanyProspectsTable({
   companies,
   onReview = () => {},
+  onApprove,
+  onReject,
   showStatus = true,
   showActions = false,
   itemsPerPage = 5,
@@ -50,6 +55,7 @@ export function CompanyProspectsTable({
             {showStatus && <TableHead>Status</TableHead>}
             <TableHead>Notes</TableHead>
             <TableHead>Submitted By</TableHead>
+            <TableHead>Submitted At</TableHead>
             {showActions && (
               <TableHead className="text-right">Actions</TableHead>
             )}
@@ -59,9 +65,7 @@ export function CompanyProspectsTable({
           {companies.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={
-                  (showStatus ? 2 : 0) + (showActions ? 1 : 0) + 4 // Updated colspan to include reviewer column
-                }
+                colSpan={(showStatus ? 2 : 0) + (showActions ? 1 : 0) + 4}
                 className="text-center py-4 text-gray-500"
               >
                 No companies found
@@ -107,16 +111,89 @@ export function CompanyProspectsTable({
                   )}
                 </TableCell>
                 <TableCell>{company.submitterName || "Unknown"}</TableCell>
+                <TableCell>
+                  {" "}
+                  {company.createdAt
+                    ? new Date(company.createdAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "-"}
+                </TableCell>
                 {showActions && (
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-5"
-                      onClick={() => onReview(company)}
-                    >
-                      {company.status === "Pending" ? "Review" : "View Details"}
-                    </Button>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7"
+                        onClick={() => onReview(company)}
+                        title={
+                          company.status === "Pending"
+                            ? "Review"
+                            : "View Details"
+                        }
+                      >
+                        {company.status === "Pending" ? (
+                          <FileEdit className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </Button>
+
+                      {onApprove && (
+                        <Button
+                          variant={
+                            company.status === "Approved"
+                              ? "default"
+                              : "outline"
+                          }
+                          size="sm"
+                          className={`h-7 ${
+                            company.status === "Approved"
+                              ? "bg-green-600 hover:bg-green-700"
+                              : "text-green-600 border-green-600 hover:bg-green-50"
+                          }`}
+                          onClick={() => onApprove(company)}
+                          title={
+                            company.status === "Approved"
+                              ? "Already Approved"
+                              : "Approve"
+                          }
+                          disabled={company.status === "Approved"}
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                        </Button>
+                      )}
+
+                      {onReject && (
+                        <Button
+                          variant={
+                            company.status === "Rejected"
+                              ? "default"
+                              : "outline"
+                          }
+                          size="sm"
+                          className={`h-7 ${
+                            company.status === "Rejected"
+                              ? "bg-red-600 hover:bg-red-700"
+                              : "text-red-600 border-red-600 hover:bg-red-50"
+                          }`}
+                          onClick={() => onReject(company)}
+                          title={
+                            company.status === "Rejected"
+                              ? "Already Rejected"
+                              : "Reject"
+                          }
+                          disabled={company.status === "Rejected"}
+                        >
+                          <XCircle className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 )}
               </TableRow>

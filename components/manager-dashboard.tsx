@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,6 +37,7 @@ export interface Company {
   approverName?: string;
   approverId?: string;
   approvedAt?: number;
+  createdAt: number;
 }
 
 // Use a type for valid status values
@@ -69,11 +70,35 @@ export function ManagerDashboardContent() {
     approverName: prospect.approverName,
     approverId: prospect.approverId,
     approvedAt: prospect.approvedAt,
+    createdAt: prospect.createdAt,
   }));
 
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [notes, setNotes] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  // Create a ref for the textarea
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Handle dialog state changes and cursor position
+  useEffect(() => {
+    if (isDialogOpen && notes) {
+      // Small delay to ensure the dialog and textarea are fully rendered
+      const timer = setTimeout(() => {
+        if (textareaRef.current) {
+          // Using requestAnimationFrame for better timing after render
+          requestAnimationFrame(() => {
+            // Set cursor position to the end of the text
+            textareaRef.current!.selectionStart =
+              textareaRef.current!.selectionEnd =
+                textareaRef.current!.value.length;
+          });
+        }
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isDialogOpen, notes]);
 
   const handleReview = (company: Company) => {
     setSelectedCompany(company);
@@ -263,6 +288,8 @@ export function ManagerDashboardContent() {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={4}
+                ref={textareaRef}
+                autoFocus
               />
             </div>
           </div>

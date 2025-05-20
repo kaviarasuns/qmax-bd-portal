@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CompanyProspectsTable } from "./company-prospects-table";
 import { useMutation, useQuery } from "convex/react";
@@ -19,8 +19,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle, XCircle } from "lucide-react";
 
 // Define the Company interface and status type
-type CompanyStatus = "Pending" | "Approved" | "Rejected" | "Submitted";
-interface Company {
+export type CompanyStatus = "Pending" | "Approved" | "Rejected" | "Submitted";
+export interface Company {
   id: Id<"companyProspects">;
   name: string;
   website: string;
@@ -30,6 +30,7 @@ interface Company {
   approverName?: string;
   approverId?: string;
   approvedAt?: number;
+  createdAt: number;
 }
 
 export function CompanyTabs() {
@@ -48,6 +49,7 @@ export function CompanyTabs() {
     approverName: prospect.approverName,
     approverId: prospect.approverId,
     approvedAt: prospect.approvedAt,
+    createdAt: prospect.createdAt,
   }));
 
   // Get current user information
@@ -67,8 +69,32 @@ export function CompanyTabs() {
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  // Create a ref for the textarea
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Handle dialog state changes and cursor position
+  useEffect(() => {
+    if (isDialogOpen && notes) {
+      // Small delay to ensure the dialog and textarea are fully rendered
+      const timer = setTimeout(() => {
+        if (textareaRef.current) {
+          // Using requestAnimationFrame for better timing after render
+          requestAnimationFrame(() => {
+            // Set cursor position to the end of the text
+            textareaRef.current!.selectionStart =
+              textareaRef.current!.selectionEnd =
+                textareaRef.current!.value.length;
+          });
+        }
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isDialogOpen, notes]);
+
   const handleReview = (company: Company) => {
     setSelectedCompany(company);
+    setNotes(company.notes);
     setIsDialogOpen(true);
   };
 
@@ -109,6 +135,29 @@ export function CompanyTabs() {
     setIsDialogOpen(false);
   };
 
+  // Updated approve/reject handlers that take a company parameter
+  const handleDirectApprove = async (company: Company) => {
+    if (!currentUser?.user?._id || !currentUser.user.name) return;
+    await updateCompanyProspectStatus({
+      id: company.id,
+      status: "Approved",
+      notes: company.notes,
+      approverName: currentUser.user.name,
+      approverId: currentUser.user._id,
+    });
+  };
+
+  const handleDirectReject = async (company: Company) => {
+    if (!currentUser?.user?._id || !currentUser.user.name) return;
+    await updateCompanyProspectStatus({
+      id: company.id,
+      status: "Rejected",
+      notes: company.notes,
+      approverName: currentUser.user.name,
+      approverId: currentUser.user._id,
+    });
+  };
+
   return (
     <div className="mt-4">
       <Tabs defaultValue="all">
@@ -126,6 +175,8 @@ export function CompanyTabs() {
             showStatus={true}
             showActions={true}
             itemsPerPage={15}
+            onApprove={handleDirectApprove}
+            onReject={handleDirectReject}
           />
         </TabsContent>
 
@@ -136,6 +187,8 @@ export function CompanyTabs() {
             showStatus={true}
             showActions={true}
             itemsPerPage={15}
+            onApprove={handleDirectApprove}
+            onReject={handleDirectReject}
           />
         </TabsContent>
 
@@ -146,6 +199,8 @@ export function CompanyTabs() {
             showStatus={true}
             showActions={true}
             itemsPerPage={15}
+            onApprove={handleDirectApprove}
+            onReject={handleDirectReject}
           />
         </TabsContent>
 
@@ -156,6 +211,8 @@ export function CompanyTabs() {
             showStatus={true}
             showActions={true}
             itemsPerPage={15}
+            onApprove={handleDirectApprove}
+            onReject={handleDirectReject}
           />
         </TabsContent>
       </Tabs>
@@ -216,6 +273,8 @@ export function CompanyTabs() {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={4}
+                ref={textareaRef}
+                autoFocus
               />
             </div>
           </div>
