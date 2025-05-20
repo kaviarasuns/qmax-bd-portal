@@ -105,11 +105,17 @@ export function CompanyProspectsTable({
                 )}
                 <TableCell>
                   {company.notes ? (
-                    <span className="line-clamp-1">{company.notes}</span>
+                    <span
+                      className="block max-w-[150px] truncate"
+                      title={company.notes}
+                    >
+                      {company.notes}
+                    </span>
                   ) : (
                     <span className="text-gray-400 italic">No notes</span>
                   )}
                 </TableCell>
+
                 <TableCell>{company.submitterName || "Unknown"}</TableCell>
                 <TableCell>
                   {" "}
