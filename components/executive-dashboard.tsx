@@ -23,6 +23,7 @@ interface Company {
   status: "Pending" | "Approved" | "Rejected";
   notes: string; // Add this field
   submitterName: string; // Add this field
+  createdAt: number;
 }
 export function ExecutiveDashboardContent() {
   // Fetch companies from Convex
@@ -37,6 +38,7 @@ export function ExecutiveDashboardContent() {
     status: prospect.status as "Pending" | "Approved" | "Rejected",
     notes: prospect.notes || "", // Add this field
     submitterName: prospect.submitterName || "Unknown", // Add this field
+    createdAt: prospect.createdAt,
   }));
 
   // Get the addCompanyProspect mutation
