@@ -73,7 +73,7 @@ export function CompanyProspectsTable({
             </TableRow>
           ) : (
             currentItems.map((company) => (
-              <TableRow key={company.id}>
+              <TableRow key={company.id} className="tr-hover-extra-dark">
                 <TableCell className="font-medium">{company.name}</TableCell>
                 <TableCell>
                   <a

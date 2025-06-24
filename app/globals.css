@@ -121,3 +121,11 @@
     @apply bg-background text-foreground;
   }
 }
+@layer components {
+  /* Extra dark table row hover for CompanyProspectsTable */
+  .tr-hover-extra-dark:hover {
+    background-color: var(
+      --color-gray-100
+    ) !important; /* nearly black, adjust as needed */
+  }
+}
