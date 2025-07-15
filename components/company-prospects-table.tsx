@@ -28,15 +28,82 @@ export function CompanyProspectsTable({
   onReject,
   showStatus = true,
   showActions = false,
-  itemsPerPage = 5,
+  itemsPerPage: initialItemsPerPage = 15,
 }: ManagerCompanyTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [itemsPerPage, setItemsPerPage] = useState(initialItemsPerPage);
   const totalPages = Math.ceil(companies.length / itemsPerPage);
+
+  // Sorting logic
+  function handleSort(column: string) {
+    if (sortColumn === column) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+    setCurrentPage(1); // Reset to first page on sort
+  }
+
+  function getSortIndicator(column: string) {
+    const baseClass = "ml-1 text-xs";
+    const inactiveClass = "text-gray-300";
+    const activeClass = "text-gray-700 font-bold";
+    if (sortColumn === column) {
+      return (
+        <span className={baseClass}>
+          <span
+            className={sortDirection === "asc" ? activeClass : inactiveClass}
+          >
+            ▲
+          </span>
+          <span
+            className={sortDirection === "desc" ? activeClass : inactiveClass}
+          >
+            ▼
+          </span>
+        </span>
+      );
+    }
+    // Not sorted: both arrows faint
+    return <span className={baseClass + " " + inactiveClass}>▲▼</span>;
+  }
+
+  function sortCompanies(companies: Company[]) {
+    if (!sortColumn) return companies;
+    return [...companies].sort((a, b) => {
+      let aValue = a[sortColumn as keyof Company];
+      let bValue = b[sortColumn as keyof Company];
+      // Handle undefined/null
+      if (aValue == null) aValue = "";
+      if (bValue == null) bValue = "";
+      // Special handling for createdAt (date)
+      if (sortColumn === "createdAt") {
+        return sortDirection === "asc"
+          ? new Date(aValue as string).getTime() -
+              new Date(bValue as string).getTime()
+          : new Date(bValue as string).getTime() -
+              new Date(aValue as string).getTime();
+      }
+      // String comparison (case-insensitive)
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        return sortDirection === "asc"
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+      // Fallback
+      return 0;
+    });
+  }
+
+  const sortedCompanies = sortCompanies(companies);
 
   // Calculate current page items
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentItems = companies.slice(startIndex, endIndex);
+  const currentItems = sortedCompanies.slice(startIndex, endIndex);
 
   function getFullUrl(website: string): string {
     if (!website) return "#";
@@ -50,12 +117,44 @@ export function CompanyProspectsTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Company Name</TableHead>
-            <TableHead>Website</TableHead>
-            {showStatus && <TableHead>Status</TableHead>}
-            <TableHead>Notes</TableHead>
-            <TableHead>Submitted By</TableHead>
-            <TableHead>Submitted At</TableHead>
+            <TableHead
+              className="cursor-pointer select-none"
+              onClick={() => handleSort("name")}
+            >
+              Company Name {getSortIndicator("name")}
+            </TableHead>
+            <TableHead
+              className="cursor-pointer select-none"
+              onClick={() => handleSort("website")}
+            >
+              Website {getSortIndicator("website")}
+            </TableHead>
+            {showStatus && (
+              <TableHead
+                className="cursor-pointer select-none"
+                onClick={() => handleSort("status")}
+              >
+                Status {getSortIndicator("status")}
+              </TableHead>
+            )}
+            <TableHead
+              className="cursor-pointer select-none"
+              onClick={() => handleSort("notes")}
+            >
+              Notes {getSortIndicator("notes")}
+            </TableHead>
+            <TableHead
+              className="cursor-pointer select-none"
+              onClick={() => handleSort("submitterName")}
+            >
+              Submitted By {getSortIndicator("submitterName")}
+            </TableHead>
+            <TableHead
+              className="cursor-pointer select-none"
+              onClick={() => handleSort("createdAt")}
+            >
+              Submitted At {getSortIndicator("createdAt")}
+            </TableHead>
             {showActions && (
               <TableHead className="text-right">Actions</TableHead>
             )}
@@ -207,8 +306,29 @@ export function CompanyProspectsTable({
           )}
         </TableBody>
       </Table>
-      {companies.length > itemsPerPage && (
-        <div className="flex items-center justify-end space-x-2 py-4 px-4 border-t">
+      {/* Always show pagination controls, regardless of itemsPerPage vs companies.length */}
+      <div className="flex items-center justify-between space-x-2 py-4 px-4 border-t">
+        {/* Entries per page selector */}
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-gray-600">Show</span>
+          <select
+            className="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={itemsPerPage}
+            onChange={(e) => {
+              setCurrentPage(1);
+              setItemsPerPage(Number(e.target.value));
+            }}
+            style={{ minWidth: 60 }}
+          >
+            {[15, 20, 50, 100].map((num) => (
+              <option key={num} value={num}>
+                {num}
+              </option>
+            ))}
+          </select>
+          <span className="text-sm text-gray-600">entries</span>
+        </div>
+        <div className="flex items-center space-x-2">
           <Button
             variant="outline"
             size="sm"
@@ -217,9 +337,25 @@ export function CompanyProspectsTable({
           >
             Previous
           </Button>
-          <span className="text-sm text-gray-600">
-            Page {currentPage} of {totalPages}
-          </span>
+          {/* Page number buttons */}
+          <div className="flex items-center space-x-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <Button
+                key={page}
+                variant={page === currentPage ? "default" : "outline"}
+                size="sm"
+                className={
+                  page === currentPage
+                    ? "font-bold bg-gray-200 text-black cursor-default"
+                    : ""
+                }
+                onClick={() => setCurrentPage(page)}
+                disabled={page === currentPage}
+              >
+                {page}
+              </Button>
+            ))}
+          </div>
           <Button
             variant="outline"
             size="sm"
@@ -231,7 +367,7 @@ export function CompanyProspectsTable({
             Next
           </Button>
         </div>
-      )}
+      </div>
     </div>
   );
 }
