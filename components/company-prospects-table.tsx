@@ -337,24 +337,79 @@ export function CompanyProspectsTable({
           >
             Previous
           </Button>
-          {/* Page number buttons */}
+          {/* Condensed pagination with ellipsis for large page counts */}
           <div className="flex items-center space-x-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <Button
-                key={page}
-                variant={page === currentPage ? "default" : "outline"}
-                size="sm"
-                className={
-                  page === currentPage
-                    ? "font-bold bg-gray-200 text-black cursor-default"
-                    : ""
+            {(() => {
+              const pages = [];
+              // Always show first page
+              if (totalPages <= 10) {
+                for (let i = 1; i <= totalPages; i++) {
+                  pages.push(i);
                 }
-                onClick={() => setCurrentPage(page)}
-                disabled={page === currentPage}
-              >
-                {page}
-              </Button>
-            ))}
+              } else {
+                pages.push(1);
+                // Show left ellipsis if needed
+                if (currentPage > 4) {
+                  pages.push("left-ellipsis");
+                }
+                // Show up to 2 pages before current
+                for (
+                  let i = Math.max(2, currentPage - 1);
+                  i < currentPage;
+                  i++
+                ) {
+                  pages.push(i);
+                }
+                // Show current page
+                if (currentPage !== 1 && currentPage !== totalPages) {
+                  pages.push(currentPage);
+                }
+                // Show up to 2 pages after current
+                for (
+                  let i = currentPage + 1;
+                  i <= Math.min(totalPages - 1, currentPage + 1);
+                  i++
+                ) {
+                  pages.push(i);
+                }
+                // Show right ellipsis if needed
+                if (currentPage < totalPages - 3) {
+                  pages.push("right-ellipsis");
+                }
+                // Always show last page
+                if (totalPages > 1) {
+                  pages.push(totalPages);
+                }
+              }
+              return pages.map((page, idx) => {
+                if (page === "left-ellipsis" || page === "right-ellipsis") {
+                  return (
+                    <span
+                      key={page + idx}
+                      className="px-1 text-gray-400 select-none"
+                    >
+                      ...
+                    </span>
+                  );
+                }
+                return (
+                  <Button
+                    key={page}
+                    variant={page === currentPage ? "default" : "outline"}
+                    size="sm"
+                    className={
+                      page === currentPage
+                        ? "font-bold bg-gray-200 text-black cursor-default"
+                        : ""
+                    }
+                    onClick={() => setCurrentPage(page as number)}
+                    disabled={page === currentPage}
+                  >
+                    {page}
+                  </Button>
+                );
+              });
+            })()}
           </div>
           <Button
             variant="outline"
