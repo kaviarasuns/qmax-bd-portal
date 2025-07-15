@@ -28,7 +28,7 @@ export function CompanyProspectsTable({
   onReject,
   showStatus = true,
   showActions = false,
-  itemsPerPage: initialItemsPerPage = 15,
+  itemsPerPage: initialItemsPerPage = 5,
 }: ManagerCompanyTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
@@ -320,7 +320,7 @@ export function CompanyProspectsTable({
             }}
             style={{ minWidth: 60 }}
           >
-            {[15, 20, 50, 100].map((num) => (
+            {[5, 15, 20, 50, 100].map((num) => (
               <option key={num} value={num}>
                 {num}
               </option>

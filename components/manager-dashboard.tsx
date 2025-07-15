@@ -198,6 +198,7 @@ export function ManagerDashboardContent() {
                   onReview={handleReview}
                   showStatus={true}
                   showActions={true} // Show actions for all companies
+                  itemsPerPage={5}
                 />
               </TabsContent>
 
@@ -207,6 +208,7 @@ export function ManagerDashboardContent() {
                   onReview={handleReview}
                   showStatus={true}
                   showActions={true} // Show actions for pending companies
+                  itemsPerPage={5}
                 />
               </TabsContent>
 
@@ -216,6 +218,7 @@ export function ManagerDashboardContent() {
                   onReview={handleReview}
                   showStatus={true}
                   showActions={true} // Show actions for approved companies
+                  itemsPerPage={5}
                 />
               </TabsContent>
 
@@ -225,6 +228,7 @@ export function ManagerDashboardContent() {
                   onReview={handleReview}
                   showStatus={true}
                   showActions={true} // Show actions for rejected companies
+                  itemsPerPage={5}
                 />
               </TabsContent>
             </Tabs>

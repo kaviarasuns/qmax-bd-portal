@@ -90,21 +90,24 @@ export function ExecutiveDashboardContent() {
                 <TabsTrigger value="rejected">Rejected</TabsTrigger>
               </TabsList>
               <TabsContent value="all" className="mt-4">
-                <CompanyProspectsTable companies={companies} />
+                <CompanyProspectsTable companies={companies} itemsPerPage={5} />
               </TabsContent>
               <TabsContent value="pending" className="mt-4">
                 <CompanyProspectsTable
                   companies={companies.filter((c) => c.status === "Pending")}
+                  itemsPerPage={5}
                 />
               </TabsContent>
               <TabsContent value="approved" className="mt-4">
                 <CompanyProspectsTable
                   companies={companies.filter((c) => c.status === "Approved")}
+                  itemsPerPage={5}
                 />
               </TabsContent>
               <TabsContent value="rejected" className="mt-4">
                 <CompanyProspectsTable
                   companies={companies.filter((c) => c.status === "Rejected")}
+                  itemsPerPage={5}
                 />
               </TabsContent>
             </Tabs>
