@@ -145,7 +145,6 @@ export default function ProfilePage() {
               className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
             />
           </div>
-
           <div>
             <label
               className="block text-sm font-medium mb-1"
