@@ -41,6 +41,7 @@ export default function ProfilePage() {
 
     if (newPassword.length < 8) {
       setError("Password must be at least 8 characters long");
+
       setIsLoading(false);
       return;
     }
